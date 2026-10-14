@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>GPA Tracker</title>
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial,sans-serif;
+}
+
+body{
+    background:#121214;
+    color:white;
+    display:flex;
+    min-height:100vh;
+}
+
+.sidebar{
+    width:250px;
+    background:#1e1e24;
+    padding:20px;
+}
+
+.logo{
+    text-align:center;
+    color:#52b788;
+    margin-bottom:30px;
+}
+
+.menu{
+    list-style:none;
+}
+
+.menu li{
+    margin:10px 0;
+}
+
+.menu a{
+    display:block;
+    padding:12px;
+    color:white;
+    text-decoration:none;
+    border-radius:8px;
+}
+
+.menu a:hover{
+    background:#2a2a35;
+    color:#52b788;
+}
+
+.content{
+    flex:1;
+    padding:30px;
+}
+
+.card{
+    background:#1e1e24;
+    border:1px solid #333;
+    border-radius:12px;
+    padding:25px;
+}
+
+h1{
+    color:#52b788;
+    margin-bottom:10px;
+}
+
+.subtitle{
+    color:#bdbdbd;
+    margin-bottom:20px;
+}
+
+.stats{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+    gap:15px;
+    margin-bottom:25px;
+}
+
+.stat-card{
+    background:#2a2a35;
+    padding:20px;
+    border-radius:10px;
+    text-align:center;
+}
+
+.stat-card h3{
+    color:#52b788;
+    margin-bottom:10px;
+}
+
+.stat-value{
+    font-size:24px;
+    font-weight:bold;
+}
+
+input{
+    width:100%;
+    padding:12px;
+    margin-bottom:15px;
+    border:none;
+    border-radius:8px;
+    background:#2a2a35;
+    color:white;
+}
+
+button{
+    background:#52b788;
+    color:#121214;
+    border:none;
+    padding:12px 20px;
+    border-radius:8px;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+button:hover{
+    background:#40916c;
+}
+
+.gpa-list{
+    margin-top:25px;
+}
+
+.gpa-item{
+
+    background:#2a2a35;
+
+    padding:15px;
+
+    border-radius:10px;
+
+    margin-bottom:12px;
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+}
+
+.semester{
+    color:#52b788;
+    font-weight:bold;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="sidebar">
+
+    <h2 class="logo">🎓 Smart Student</h2>
+
+    <ul class="menu">
+        <li><a href="dashboard.html">🏠 Dashboard</a></li>
+        <li><a href="notes.html">📚 Notes</a></li>
+        <li><a href="assignments.html">📝 Assignments</a></li>
+        <li><a href="attendance.html">📅 Attendance</a></li>
+        <li><a href="gpa.html">📊 GPA Tracker</a></li>
+        <li><a href="reminders.html">⏰ Reminders</a></li>
+        <li><a href="ainotes.html">🤖 AI Notes</a></li>
+        <li><a href="flashcards.html">📖 Flashcards</a></li>
+        <li><a href="chatbot.html">🤖 AI Assistant</a></li>
+    </ul>
+
+</div>
+
+<div class="content">
+
+<div class="card">
+
+    <h1>📊 GPA Tracker</h1>
+
+    <p class="subtitle">
+        Track Semester GPA and Overall CGPA
+    </p>
+
+    <div class="stats">
+
+        <div class="stat-card">
+            <h3>Latest SGPA</h3>
+            <div id="latestSgpa"
+                 class="stat-value">
+                 0.0
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <h3>Current CGPA</h3>
+            <div id="latestCgpa"
+                 class="stat-value">
+                 0.0
+            </div>
+        </div>
+
+    </div>
+
+    <input
+        type="number"
+        id="semester"
+        placeholder="Semester (1-8)"
+        min="1"
+        max="8">
+
+    <input
+        type="number"
+        id="sgpa"
+        placeholder="SGPA"
+        min="0"
+        max="10"
+        step="0.01">
+
+    <input
+        type="number"
+        id="cgpa"
+        placeholder="CGPA"
+        min="0"
+        max="10"
+        step="0.01">
+
+    <button onclick="saveGpa()">
+        Save GPA
+    </button>
+
+    <div
+        class="gpa-list"
+        id="gpaList">
+
+    </div>
+
+</div>
+
+</div>
+
+<script>
+
+loadGpa();
+
+async function loadGpa(){
+
+    try{
+
+        const response =
+            await fetch("/api/gpa");
+
+        const gpas =
+            await response.json();
+
+        let html = "";
+
+        if(gpas.length > 0){
+
+            const latest =
+                gpas[gpas.length-1];
+
+            document.getElementById(
+                "latestSgpa").innerText =
+                latest.sgpa;
+
+            document.getElementById(
+                "latestCgpa").innerText =
+                latest.cgpa;
+        }
+
+        gpas.forEach(gpa=>{
+
+            html += `
+            <div class="gpa-item">
+
+                <div>
+
+                    <div class="semester">
+                        Semester ${gpa.semester}
+                    </div>
+
+                    <div>
+                        SGPA : ${gpa.sgpa}
+                    </div>
+
+                    <div>
+                        CGPA : ${gpa.cgpa}
+                    </div>
+
+                </div>
+
+            </div>
+            `;
+
+        });
+
+        document.getElementById(
+            "gpaList").innerHTML = html;
+
+    }
+    catch(error){
+
+        console.log(error);
+
+    }
+
+}
+
+async function saveGpa(){
+
+    const semester =
+        document.getElementById("semester").value;
+
+    const sgpa =
+        document.getElementById("sgpa").value;
+
+    const cgpa =
+        document.getElementById("cgpa").value;
+
+    if(
+        semester==="" ||
+        sgpa==="" ||
+        cgpa===""){
+        alert("Fill all fields");
+        return;
+    }
+
+    await fetch("/api/gpa",{
+
+        method:"POST",
+
+        headers:{
+            "Content-Type":"application/json"
+        },
+
+        body:JSON.stringify({
+            semester:semester,
+            sgpa:sgpa,
+            cgpa:cgpa
+        })
+
+    });
+
+    document.getElementById("semester").value="";
+    document.getElementById("sgpa").value="";
+    document.getElementById("cgpa").value="";
+
+    loadGpa();
+
+}
+
+</script>
+
+</body>
+</html>

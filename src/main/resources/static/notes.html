@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Notes Manager</title>
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial,sans-serif;
+}
+
+body{
+    background:#121214;
+    color:white;
+    display:flex;
+    min-height:100vh;
+}
+
+.sidebar{
+    width:250px;
+    background:#1e1e24;
+    padding:20px;
+}
+
+.logo{
+    text-align:center;
+    color:#52b788;
+    margin-bottom:30px;
+}
+
+.menu{
+    list-style:none;
+}
+
+.menu li{
+    margin:10px 0;
+}
+
+.menu a{
+    display:block;
+    text-decoration:none;
+    color:white;
+    padding:12px;
+    border-radius:8px;
+}
+
+.menu a:hover{
+    background:#2a2a35;
+    color:#52b788;
+}
+
+.content{
+    flex:1;
+    padding:30px;
+}
+
+.card{
+    background:#1e1e24;
+    border:1px solid #333;
+    border-radius:12px;
+    padding:25px;
+}
+
+h1{
+    color:#52b788;
+    margin-bottom:10px;
+}
+
+.subtitle{
+    color:#bdbdbd;
+    margin-bottom:20px;
+}
+
+input,textarea{
+    width:100%;
+    background:#2a2a35;
+    color:white;
+    border:none;
+    border-radius:8px;
+    padding:12px;
+    margin-bottom:15px;
+}
+
+textarea{
+    min-height:140px;
+    resize:vertical;
+}
+
+button{
+    background:#52b788;
+    color:#121214;
+    border:none;
+    border-radius:8px;
+    padding:12px 20px;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+button:hover{
+    background:#40916c;
+}
+
+.notes-list{
+    margin-top:25px;
+}
+
+.note-card{
+    background:#2a2a35;
+    border-radius:10px;
+    padding:15px;
+    margin-bottom:15px;
+}
+
+.note-title{
+    font-size:18px;
+    font-weight:bold;
+    color:#52b788;
+    margin-bottom:10px;
+}
+
+.note-content{
+    margin-bottom:15px;
+    white-space:pre-wrap;
+}
+
+.note-actions{
+    display:flex;
+    gap:10px;
+}
+
+.delete-btn{
+    background:#ff4d4d;
+    color:white;
+}
+
+.delete-btn:hover{
+    background:#d00000;
+}
+
+.copy-btn{
+    background:#444;
+    color:white;
+}
+
+.copy-btn:hover{
+    background:#666;
+}
+
+.stats{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+    gap:15px;
+    margin-bottom:20px;
+}
+
+.stat-card{
+    background:#2a2a35;
+    padding:15px;
+    border-radius:10px;
+    text-align:center;
+}
+
+.stat-card h3{
+    color:#52b788;
+    margin-bottom:10px;
+}
+
+.stat-value{
+    font-size:24px;
+    font-weight:bold;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="sidebar">
+
+    <h2 class="logo">🎓 Smart Student</h2>
+
+    <ul class="menu">
+        <li><a href="dashboard.html">🏠 Dashboard</a></li>
+        <li><a href="notes.html">📚 Notes</a></li>
+        <li><a href="assignments.html">📝 Assignments</a></li>
+        <li><a href="attendance.html">📅 Attendance</a></li>
+        <li><a href="gpa.html">📊 GPA Tracker</a></li>
+        <li><a href="reminders.html">⏰ Reminders</a></li>
+        <li><a href="ainotes.html">🤖 AI Notes</a></li>
+        <li><a href="flashcards.html">📖 Flashcards</a></li>
+        <li><a href="chatbot.html">🤖 AI Assistant</a></li>
+    </ul>
+
+</div>
+
+<div class="content">
+
+<div class="card">
+
+    <h1>📚 Notes Manager</h1>
+
+    <p class="subtitle">
+        Create, organize and manage your study notes.
+    </p>
+
+    <div class="stats">
+
+        <div class="stat-card">
+            <h3>Total Notes</h3>
+            <div id="noteCount"
+                 class="stat-value">
+                 0
+            </div>
+        </div>
+
+    </div>
+
+    <input
+        type="text"
+        id="title"
+        placeholder="Note Title">
+
+    <textarea
+        id="content"
+        placeholder="Write your notes here...">
+    </textarea>
+
+    <button onclick="saveNote()">
+        Save Note
+    </button>
+
+    <div id="notesList"
+         class="notes-list">
+    </div>
+
+</div>
+
+</div>
+
+<script>
+
+loadNotes();
+
+async function loadNotes(){
+
+    try{
+
+        const response =
+            await fetch("/api/notes");
+
+        const notes =
+            await response.json();
+
+        let html = "";
+
+        notes.forEach(note => {
+
+            html += `
+
+            <div class="note-card">
+
+                <div class="note-title">
+                    ${note.title}
+                </div>
+
+                <div class="note-content">
+                    ${note.content}
+                </div>
+
+                <div class="note-actions">
+
+                    <button
+                    class="copy-btn"
+                    onclick="copyNote(\`${note.content}\`)">
+
+                    Copy
+
+                    </button>
+
+                    <button
+                    class="delete-btn"
+                    onclick="deleteNote(${note.id})">
+
+                    Delete
+
+                    </button>
+
+                </div>
+
+            </div>
+
+            `;
+
+        });
+
+        document.getElementById(
+        "notesList"
+        ).innerHTML = html;
+
+        document.getElementById(
+        "noteCount"
+        ).innerText =
+        notes.length;
+
+    }
+    catch(error){
+
+        console.log(error);
+
+    }
+
+}
+
+async function saveNote(){
+
+    const title =
+    document.getElementById("title").value;
+
+    const content =
+    document.getElementById("content").value;
+
+    if(title.trim()==="" ||
+       content.trim()===""){
+
+        alert("Please enter title and notes");
+
+        return;
+    }
+
+    await fetch("/api/notes",{
+
+        method:"POST",
+
+        headers:{
+            "Content-Type":"application/json"
+        },
+
+        body:JSON.stringify({
+
+            title:title,
+            content:content
+
+        })
+
+    });
+
+    document.getElementById("title").value="";
+    document.getElementById("content").value="";
+
+    loadNotes();
+
+}
+
+async function deleteNote(id){
+
+    await fetch("/api/notes/" + id,{
+
+        method:"DELETE"
+
+    });
+
+    loadNotes();
+
+}
+
+function copyNote(content){
+
+    navigator.clipboard.writeText(content);
+
+    alert("Note Copied Successfully!");
+
+}
+
+</script>
+
+</body>
+
+</html>

@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0">
+
+<title>Reminders</title>
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial,sans-serif;
+}
+
+body{
+    background:#121214;
+    color:white;
+    display:flex;
+    min-height:100vh;
+}
+
+.sidebar{
+    width:250px;
+    background:#1e1e24;
+    padding:20px;
+}
+
+.logo{
+    text-align:center;
+    color:#52b788;
+    margin-bottom:30px;
+}
+
+.menu{
+    list-style:none;
+}
+
+.menu li{
+    margin:10px 0;
+}
+
+.menu a{
+    display:block;
+    color:white;
+    text-decoration:none;
+    padding:12px;
+    border-radius:8px;
+}
+
+.menu a:hover{
+    background:#2a2a35;
+    color:#52b788;
+}
+
+.content{
+    flex:1;
+    padding:30px;
+}
+
+.card{
+    background:#1e1e24;
+    padding:25px;
+    border-radius:12px;
+    border:1px solid #333;
+}
+
+h1{
+    color:#52b788;
+    margin-bottom:10px;
+}
+
+.subtitle{
+    color:#bdbdbd;
+    margin-bottom:20px;
+}
+
+input{
+    width:100%;
+    background:#2a2a35;
+    color:white;
+    border:none;
+    border-radius:8px;
+    padding:12px;
+    margin-bottom:15px;
+}
+
+button{
+    background:#52b788;
+    color:#121214;
+    border:none;
+    padding:12px 20px;
+    border-radius:8px;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+button:hover{
+    background:#40916c;
+}
+
+.reminder-list{
+    margin-top:25px;
+}
+
+.reminder-card{
+    background:#2a2a35;
+    border-radius:10px;
+    padding:15px;
+    margin-bottom:12px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.reminder-title{
+    color:#52b788;
+    font-weight:bold;
+    margin-bottom:5px;
+}
+
+.reminder-date{
+    color:#bdbdbd;
+}
+
+.delete-btn{
+    background:#ff4d4d;
+    color:white;
+}
+
+.delete-btn:hover{
+    background:#d00000;
+}
+
+.stats{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+    gap:15px;
+    margin-bottom:20px;
+}
+
+.stat-card{
+    background:#2a2a35;
+    border-radius:10px;
+    padding:15px;
+    text-align:center;
+}
+
+.stat-card h3{
+    color:#52b788;
+    margin-bottom:10px;
+}
+
+.stat-value{
+    font-size:24px;
+    font-weight:bold;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="sidebar">
+
+    <h2 class="logo">🎓 Smart Student</h2>
+
+    <ul class="menu">
+        <li><a href="dashboard.html">🏠 Dashboard</a></li>
+        <li><a href="notes.html">📚 Notes</a></li>
+        <li><a href="assignments.html">📝 Assignments</a></li>
+        <li><a href="attendance.html">📅 Attendance</a></li>
+        <li><a href="gpa.html">📊 GPA Tracker</a></li>
+        <li><a href="reminders.html">⏰ Reminders</a></li>
+        <li><a href="ainotes.html">🤖 AI Notes</a></li>
+        <li><a href="flashcards.html">📖 Flashcards</a></li>
+        <li><a href="chatbot.html">🤖 AI Assistant</a></li>
+    </ul>
+
+</div>
+
+<div class="content">
+
+<div class="card">
+
+    <h1>⏰ Reminder Manager</h1>
+
+    <p class="subtitle">
+        Never miss assignments, exams, or important tasks.
+    </p>
+
+    <div class="stats">
+
+        <div class="stat-card">
+
+            <h3>Total Reminders</h3>
+
+            <div id="totalReminders"
+                 class="stat-value">
+
+                0
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <input
+           type="text"
+           id="title"
+           placeholder="Reminder Title">
+
+    <input
+           type="date"
+           id="reminderDate">
+
+    <button onclick="saveReminder()">
+        Add Reminder
+    </button>
+
+    <div
+         class="reminder-list"
+         id="reminderList">
+
+    </div>
+
+</div>
+
+</div>
+
+<script>
+
+loadReminders();
+
+async function loadReminders(){
+
+    try{
+
+        const response =
+            await fetch("/api/reminders");
+
+        const reminders =
+            await response.json();
+
+        let html = "";
+
+        reminders.forEach(reminder=>{
+
+            html += `
+
+            <div class="reminder-card">
+
+                <div>
+
+                    <div class="reminder-title">
+
+                        ${reminder.title}
+
+                    </div>
+
+                    <div class="reminder-date">
+
+                        ${reminder.date}
+
+                    </div>
+
+                </div>
+
+                <button
+                    class="delete-btn"
+                    onclick="deleteReminder(${reminder.id})">
+
+                    Delete
+
+                </button>
+
+            </div>
+
+            `;
+
+        });
+
+        document.getElementById(
+            "reminderList"
+        ).innerHTML = html;
+
+        document.getElementById(
+            "totalReminders"
+        ).innerText = reminders.length;
+
+    }
+    catch(error){
+
+        console.log(error);
+
+    }
+
+}
+
+async function saveReminder(){
+
+    const title =
+        document.getElementById("title").value;
+
+    const date =
+        document.getElementById("reminderDate").value;
+
+    if(title.trim()==="" || date===""){
+
+        alert("Please fill all fields");
+
+        return;
+    }
+
+    await fetch("/api/reminders",{
+
+        method:"POST",
+
+        headers:{
+            "Content-Type":"application/json"
+        },
+
+        body:JSON.stringify({
+
+            title:title,
+            date:date
+
+        })
+
+    });
+
+    document.getElementById("title").value="";
+    document.getElementById("reminderDate").value="";
+
+    loadReminders();
+
+}
+
+async function deleteReminder(id){
+
+    await fetch("/api/reminders/" + id,{
+
+        method:"DELETE"
+
+    });
+
+    loadReminders();
+
+}
+
+</script>
+
+</body>
+</html>

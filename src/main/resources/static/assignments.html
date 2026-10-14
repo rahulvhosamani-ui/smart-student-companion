@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Assignment Tracker</title>
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial,sans-serif;
+}
+
+body{
+    background:#121214;
+    color:white;
+    display:flex;
+    min-height:100vh;
+}
+
+.sidebar{
+    width:250px;
+    background:#1e1e24;
+    padding:20px;
+}
+
+.logo{
+    text-align:center;
+    color:#52b788;
+    margin-bottom:30px;
+}
+
+.menu{
+    list-style:none;
+}
+
+.menu li{
+    margin:10px 0;
+}
+
+.menu a{
+    display:block;
+    text-decoration:none;
+    color:white;
+    padding:12px;
+    border-radius:8px;
+}
+
+.menu a:hover{
+    background:#2a2a35;
+    color:#52b788;
+}
+
+.content{
+    flex:1;
+    padding:30px;
+}
+
+.card{
+    background:#1e1e24;
+    padding:25px;
+    border-radius:12px;
+    border:1px solid #333;
+}
+
+h1{
+    color:#52b788;
+    margin-bottom:10px;
+}
+
+.subtitle{
+    color:#bdbdbd;
+    margin-bottom:20px;
+}
+
+input{
+    width:100%;
+    background:#2a2a35;
+    color:white;
+    border:1px solid #444;
+    border-radius:8px;
+    padding:12px;
+    margin-bottom:15px;
+}
+
+button{
+    background:#52b788;
+    color:#121214;
+    border:none;
+    padding:12px 20px;
+    border-radius:8px;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+button:hover{
+    background:#40916c;
+}
+
+.assignment-list{
+    margin-top:25px;
+}
+
+.assignment-item{
+    background:#2a2a35;
+    margin-bottom:10px;
+    padding:15px;
+    border-radius:8px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.delete-btn{
+    background:#ff4d4d;
+    color:white;
+}
+
+.delete-btn:hover{
+    background:#cc0000;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="sidebar">
+
+    <h2 class="logo">🎓 Smart Student</h2>
+
+    <ul class="menu">
+        <li><a href="dashboard.html">🏠 Dashboard</a></li>
+        <li><a href="notes.html">📚 Notes</a></li>
+        <li><a href="assignments.html">📝 Assignments</a></li>
+        <li><a href="attendance.html">📅 Attendance</a></li>
+        <li><a href="gpa.html">📊 GPA Tracker</a></li>
+        <li><a href="reminders.html">⏰ Reminders</a></li>
+        <li><a href="ainotes.html">🤖 AI Notes</a></li>
+        <li><a href="flashcards.html">📖 Flashcards</a></li>
+        <li><a href="chatbot.html">🤖 AI Assistant</a></li>
+    </ul>
+
+</div>
+
+<div class="content">
+
+<div class="card">
+
+    <h1>📝 Assignment Tracker</h1>
+
+    <p class="subtitle">
+        Manage and track your assignments.
+    </p>
+
+    <input
+        type="text"
+        id="assignmentTitle"
+        placeholder="Assignment Title">
+
+    <button onclick="addAssignment()">
+        Add Assignment
+    </button>
+
+    <div class="assignment-list"
+         id="assignmentList">
+
+    </div>
+
+</div>
+
+</div>
+
+<script>
+
+loadAssignments();
+
+async function loadAssignments(){
+
+    const response =
+        await fetch("/api/assignments");
+
+    const assignments =
+        await response.json();
+
+    let html = "";
+
+    assignments.forEach(assignment => {
+
+        html += `
+        <div class="assignment-item">
+
+            <span>
+                ${assignment.title}
+            </span>
+
+            <button
+                class="delete-btn"
+                onclick="deleteAssignment(${assignment.id})">
+
+                Delete
+
+            </button>
+
+        </div>
+        `;
+    });
+
+    document.getElementById("assignmentList")
+        .innerHTML = html;
+}
+
+async function addAssignment(){
+
+    const title =
+        document.getElementById("assignmentTitle").value;
+
+    if(title.trim() === ""){
+
+        alert("Enter assignment title");
+
+        return;
+    }
+
+    await fetch("/api/assignments",{
+
+        method:"POST",
+
+        headers:{
+            "Content-Type":"application/json"
+        },
+
+        body:JSON.stringify({
+            title:title
+        })
+
+    });
+
+    document.getElementById("assignmentTitle").value="";
+
+    loadAssignments();
+}
+
+async function deleteAssignment(id){
+
+    await fetch("/api/assignments/" + id,{
+
+        method:"DELETE"
+
+    });
+
+    loadAssignments();
+}
+
+</script>
+
+</body>
+</html>

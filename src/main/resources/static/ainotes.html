@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>AI Notes Generator</title>
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial,sans-serif;
+}
+
+body{
+    background:#121214;
+    color:white;
+    display:flex;
+    min-height:100vh;
+}
+
+.sidebar{
+    width:250px;
+    background:#1e1e24;
+    padding:20px;
+}
+
+.logo{
+    text-align:center;
+    color:#52b788;
+    margin-bottom:30px;
+}
+
+.menu{
+    list-style:none;
+}
+
+.menu li{
+    margin:10px 0;
+}
+
+.menu a{
+    display:block;
+    text-decoration:none;
+    color:white;
+    padding:12px;
+    border-radius:8px;
+}
+
+.menu a:hover{
+    background:#2a2a35;
+    color:#52b788;
+}
+
+.content{
+    flex:1;
+    padding:30px;
+}
+
+.card{
+    background:#1e1e24;
+    padding:25px;
+    border-radius:12px;
+    border:1px solid #333;
+}
+
+h1{
+    color:#52b788;
+    margin-bottom:10px;
+}
+
+.subtitle{
+    color:#bdbdbd;
+    margin-bottom:20px;
+}
+
+textarea{
+    width:100%;
+    min-height:200px;
+    background:#2a2a35;
+    color:white;
+    border:1px solid #444;
+    border-radius:10px;
+    padding:15px;
+    font-size:15px;
+}
+
+textarea:focus{
+    outline:none;
+    border-color:#52b788;
+}
+
+.buttons{
+    margin-top:20px;
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+}
+
+button{
+    background:#52b788;
+    color:#121214;
+    border:none;
+    padding:12px 20px;
+    border-radius:8px;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+button:hover{
+    background:#40916c;
+}
+
+.output{
+    margin-top:25px;
+    background:#2a2a35;
+    border-radius:10px;
+    padding:20px;
+    min-height:200px;
+    white-space:pre-wrap;
+}
+
+.output-title{
+    color:#52b788;
+    margin-bottom:10px;
+    font-size:18px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="sidebar">
+
+    <h2 class="logo">🎓 Smart Student</h2>
+
+    <ul class="menu">
+        <li><a href="dashboard.html">🏠 Dashboard</a></li>
+        <li><a href="notes.html">📚 Notes</a></li>
+        <li><a href="assignments.html">📝 Assignments</a></li>
+        <li><a href="attendance.html">📅 Attendance</a></li>
+        <li><a href="gpa.html">📊 GPA Tracker</a></li>
+        <li><a href="reminders.html">⏰ Reminders</a></li>
+        <li><a href="flashcards.html">📖 Flashcards</a></li>
+        <li><a href="chatbot.html">🤖 AI Assistant</a></li>
+    </ul>
+
+</div>
+
+<div class="content">
+
+<div class="card">
+
+    <h1>🤖 AI Notes Generator</h1>
+
+    <p class="subtitle">
+        Enter any topic and generate smart study notes.
+    </p>
+
+    <textarea
+        id="topic"
+        placeholder="Example: Java Collections Framework">
+    </textarea>
+
+    <div class="buttons">
+
+        <button onclick="generateNotes()">
+            Generate Notes
+        </button>
+
+        <button onclick="copyNotes()">
+            Copy Notes
+        </button>
+
+        <button onclick="downloadNotes()">
+            Download Notes
+        </button>
+
+    </div>
+
+    <div class="output">
+
+        <div class="output-title">
+            Generated Notes
+        </div>
+
+        <div id="result">
+            Notes will appear here...
+        </div>
+
+    </div>
+
+</div>
+
+</div>
+
+<script>
+
+async function generateNotes(){
+
+    const topic =
+        document.getElementById("topic").value;
+
+    if(topic.trim()===""){
+        alert("Please enter a topic.");
+        return;
+    }
+
+    document.getElementById("result")
+        .innerHTML="Generating notes...";
+
+    try{
+
+        const response =
+            await fetch("/api/ainotes", {
+
+                method:"POST",
+
+                headers:{
+                    "Content-Type":"application/json"
+                },
+
+                body:JSON.stringify({
+                    topic:topic
+                })
+
+            });
+
+        const data =
+            await response.json();
+
+        document.getElementById("result")
+            .innerText=data.notes;
+
+    }
+    catch(error){
+
+        document.getElementById("result")
+            .innerText="Unable to generate notes.";
+
+    }
+}
+
+function copyNotes(){
+
+    const notes =
+        document.getElementById("result").innerText;
+
+    navigator.clipboard.writeText(notes);
+
+    alert("Notes copied successfully!");
+
+}
+
+function downloadNotes(){
+
+    const notes =
+        document.getElementById("result").innerText;
+
+    const blob =
+        new Blob([notes],{
+            type:"text/plain"
+        });
+
+    const link =
+        document.createElement("a");
+
+    link.href =
+        URL.createObjectURL(blob);
+
+    link.download =
+        "AI_Notes.txt";
+
+    link.click();
+
+}
+
+</script>
+
+</body>
+</html>

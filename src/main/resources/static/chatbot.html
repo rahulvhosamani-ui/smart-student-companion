@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>AI Study Assistant</title>
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial,sans-serif;
+}
+
+body{
+    background:#121214;
+    color:white;
+    display:flex;
+    min-height:100vh;
+}
+
+.sidebar{
+    width:250px;
+    background:#1e1e24;
+    padding:20px;
+}
+
+.logo{
+    text-align:center;
+    color:#52b788;
+    margin-bottom:30px;
+}
+
+.menu{
+    list-style:none;
+}
+
+.menu li{
+    margin:10px 0;
+}
+
+.menu a{
+    display:block;
+    text-decoration:none;
+    color:white;
+    padding:12px;
+    border-radius:8px;
+}
+
+.menu a:hover{
+    background:#2a2a35;
+    color:#52b788;
+}
+
+.content{
+    flex:1;
+    padding:30px;
+}
+
+.card{
+    background:#1e1e24;
+    padding:25px;
+    border-radius:12px;
+    border:1px solid #333;
+    height:90vh;
+    display:flex;
+    flex-direction:column;
+}
+
+h1{
+    color:#52b788;
+    margin-bottom:10px;
+}
+
+.subtitle{
+    color:#bdbdbd;
+    margin-bottom:20px;
+}
+
+.chat-box{
+    flex:1;
+    overflow-y:auto;
+    background:#2a2a35;
+    border-radius:10px;
+    padding:15px;
+}
+
+.user-message{
+    background:#3a3a4a;
+    padding:12px;
+    border-radius:10px;
+    margin-bottom:10px;
+}
+
+.ai-message{
+    background:#52b788;
+    color:#121214;
+    padding:12px;
+    border-radius:10px;
+    margin-bottom:10px;
+}
+
+.input-area{
+    display:flex;
+    gap:10px;
+    margin-top:15px;
+}
+
+.input-area input{
+    flex:1;
+    padding:12px;
+    border:none;
+    border-radius:8px;
+    background:#2a2a35;
+    color:white;
+}
+
+.input-area button{
+    background:#52b788;
+    color:#121214;
+    border:none;
+    border-radius:8px;
+    padding:12px 20px;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+.input-area button:hover{
+    background:#40916c;
+}
+
+.action-buttons{
+    margin-top:10px;
+    display:flex;
+    gap:10px;
+}
+
+.action-buttons button{
+    background:#444;
+    color:white;
+    border:none;
+    border-radius:8px;
+    padding:10px 15px;
+    cursor:pointer;
+}
+
+.action-buttons button:hover{
+    background:#666;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="sidebar">
+
+    <h2 class="logo">🎓 Smart Student</h2>
+
+    <ul class="menu">
+        <li><a href="dashboard.html">🏠 Dashboard</a></li>
+        <li><a href="notes.html">📚 Notes</a></li>
+        <li><a href="assignments.html">📝 Assignments</a></li>
+        <li><a href="attendance.html">📅 Attendance</a></li>
+        <li><a href="gpa.html">📊 GPA Tracker</a></li>
+        <li><a href="reminders.html">⏰ Reminders</a></li>
+        <li><a href="ainotes.html">🤖 AI Notes</a></li>
+        <li><a href="flashcards.html">📖 Flashcards</a></li>
+        <li><a href="chatbot.html">🤖 AI Assistant</a></li>
+    </ul>
+
+</div>
+
+<div class="content">
+
+<div class="card">
+
+    <h1>🤖 AI Study Assistant</h1>
+
+    <p class="subtitle">
+        Ask questions and get instant AI-powered study help.
+    </p>
+
+    <div id="chatBox" class="chat-box">
+    </div>
+
+    <div class="input-area">
+
+        <input
+            type="text"
+            id="question"
+            placeholder="Ask a question...">
+
+        <button onclick="askAI()">
+            Send
+        </button>
+
+    </div>
+
+    <div class="action-buttons">
+
+        <button onclick="clearChat()">
+            Clear Chat
+        </button>
+
+        <button onclick="downloadChat()">
+            Download Chat
+        </button>
+
+    </div>
+
+</div>
+
+</div>
+
+<script>
+
+loadHistory();
+
+async function loadHistory(){
+
+    try{
+
+        const response =
+            await fetch("/api/ai/history");
+
+        const chats =
+            await response.json();
+
+        let box =
+            document.getElementById("chatBox");
+
+        chats.forEach(chat => {
+
+            box.innerHTML +=
+            `
+            <div class="user-message">
+                <b>You:</b> ${chat.question}
+            </div>
+
+            <div class="ai-message">
+                <b>AI:</b> ${chat.answer}
+            </div>
+            `;
+
+        });
+
+        box.scrollTop =
+            box.scrollHeight;
+
+    }
+    catch(error){
+
+        console.log(error);
+
+    }
+
+}
+
+async function askAI(){
+
+    const question =
+        document.getElementById("question").value;
+
+    if(question.trim()===""){
+        return;
+    }
+
+    let box =
+        document.getElementById("chatBox");
+
+    box.innerHTML +=
+    `
+    <div class="user-message">
+        <b>You:</b> ${question}
+    </div>
+    `;
+
+    document.getElementById("question").value="";
+
+    try{
+
+        const response =
+            await fetch("/api/ai/chat",{
+
+                method:"POST",
+
+                headers:{
+                    "Content-Type":"application/json"
+                },
+
+                body:JSON.stringify({
+                    question:question
+                })
+
+            });
+
+        const data =
+            await response.json();
+
+        box.innerHTML +=
+        `
+        <div class="ai-message">
+            <b>AI:</b> ${data.answer}
+        </div>
+        `;
+
+        box.scrollTop =
+            box.scrollHeight;
+
+    }
+    catch(error){
+
+        box.innerHTML +=
+        `
+        <div class="ai-message">
+            Error connecting to AI.
+        </div>
+        `;
+
+    }
+
+}
+
+function clearChat(){
+
+    document.getElementById("chatBox")
+        .innerHTML="";
+
+}
+
+function downloadChat(){
+
+    const chat =
+        document.getElementById("chatBox").innerText;
+
+    const blob =
+        new Blob(
+            [chat],
+            {type:"text/plain"}
+        );
+
+    const link =
+        document.createElement("a");
+
+    link.href =
+        URL.createObjectURL(blob);
+
+    link.download =
+        "AI_Chat_History.txt";
+
+    link.click();
+
+}
+
+</script>
+
+</body>
+</html>
