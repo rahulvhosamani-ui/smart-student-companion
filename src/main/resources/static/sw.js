@@ -1,35 +1,38 @@
-const CACHE_NAME = "smart-student-v1";
+const CACHE_NAME = "smart-student-v2";
 
-const urlsToCache = [
+const staticFiles = [
     "/",
     "/index.html",
-    "/dashboard.html",
-    "/notes.html",
-    "/assignments.html",
-    "/attendance.html",
-    "/gpa.html",
-    "/reminders.html",
-    "/flashcards.html",
-    "/chatbot.html",
-    "/ainotes.html"
+    "/manifest.json",
+    "/icon-192.png",
+    "/icon-512.png"
 ];
 
 self.addEventListener("install", event => {
-
     event.waitUntil(
         caches.open(CACHE_NAME)
-            .then(cache => cache.addAll(urlsToCache))
+            .then(cache => cache.addAll(staticFiles))
+            .then(() => self.skipWaiting())
     );
+});
 
+self.addEventListener("activate", event => {
+    event.waitUntil(
+        caches.keys().then(keys =>
+            Promise.all(
+                keys
+                    .filter(key => key !== CACHE_NAME)
+                    .map(key => caches.delete(key))
+            )
+        ).then(() => self.clients.claim())
+    );
 });
 
 self.addEventListener("fetch", event => {
+    if (event.request.method !== "GET") return;
 
     event.respondWith(
-        caches.match(event.request)
-            .then(response => {
-                return response || fetch(event.request);
-            })
+        fetch(event.request)
+            .catch(() => caches.match(event.request))
     );
-
 });
