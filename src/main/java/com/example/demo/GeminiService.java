@@ -1,9 +1,14 @@
 package com.example.demo;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+
+import java.util.List;
+import java.util.Map;
 
 @Service
 public class GeminiService {
@@ -12,72 +17,64 @@ public class GeminiService {
     private String apiKey;
 
     private final RestTemplate restTemplate = new RestTemplate();
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     public String askGemini(String question) {
-
         try {
-
             String url =
-                    "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key="
-                            + apiKey;
+                "https://generativelanguage.googleapis.com/v1beta/models/"
+                + "gemini-1.5-flash:generateContent?key=" + apiKey;
 
-            String requestBody =
-                    """
-                    {
-                      "contents": [
-                        {
-                          "parts": [
-                            {
-                              "text": "%s"
-                            }
-                          ]
-                        }
-                      ]
-                    }
-                    """.formatted(question.replace("\"", "\\\""));
+            Map<String, Object> requestBody = Map.of(
+                "contents", List.of(
+                    Map.of("parts", List.of(
+                        Map.of("text", question)
+                    ))
+                )
+            );
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
 
+            String json = objectMapper.writeValueAsString(requestBody);
+
             HttpEntity<String> entity =
-                    new HttpEntity<>(requestBody, headers);
+                new HttpEntity<>(json, headers);
 
             ResponseEntity<String> response =
-                    restTemplate.exchange(
-                            url,
-                            HttpMethod.POST,
-                            entity,
-                            String.class
-                    );
+                restTemplate.exchange(
+                    url,
+                    HttpMethod.POST,
+                    entity,
+                    String.class
+                );
 
-            String body = response.getBody();
+            JsonNode root =
+                objectMapper.readTree(response.getBody());
 
-            if (body == null) {
-                return "No response from Gemini.";
+            JsonNode textNode = root.path("candidates")
+                .path(0)
+                .path("content")
+                .path("parts")
+                .path(0)
+                .path("text");
+
+            if (!textNode.isMissingNode()
+                    && !textNode.isNull()
+                    && !textNode.asText().isBlank()) {
+                return textNode.asText();
             }
 
-            int start =
-                    body.indexOf("\"text\": \"");
+            String error = root.path("error").path("message").asText();
 
-            if (start != -1) {
-
-                start += 9;
-
-                int end =
-                        body.indexOf("\"", start);
-
-                if (end > start) {
-                    return body.substring(start, end)
-                            .replace("\\n", "\n");
-                }
+            if (!error.isBlank()) {
+                return "Error: " + error;
             }
 
-            return body;
+            return "Error: Gemini returned no generated text.";
 
         } catch (Exception e) {
-
             e.printStackTrace();
-
             return "Error: " + e.getMessage();
         }
     }
