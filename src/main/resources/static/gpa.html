@@ -3,11 +3,23 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GPA Tracker</title>
-
+<title>GPA Tracker | Smart Student Companion</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
+:root {
+    --bg: #121214;
+    --panel: #1e1e24;
+    --surface: #2a2a35;
+    --green: #52b788;
+    --green-dark: #40916c;
+    --purple: #9b8afb;
+    --text: #fff;
+    --muted: #bdbdbd;
+    --border: #393943;
+    --red: #ff7777;
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -16,8 +28,20 @@
 }
 
 body {
-    background: #121214;
-    color: white;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+}
+
+button, input, select {
+    font: inherit;
+}
+
+button {
+    cursor: pointer;
+}
+
+.layout {
     display: flex;
     min-height: 100vh;
 }
@@ -25,14 +49,16 @@ body {
 .sidebar {
     width: 250px;
     flex-shrink: 0;
-    background: #1e1e24;
-    padding: 20px;
+    background: var(--panel);
+    border-right: 1px solid var(--border);
+    padding: 24px 16px;
 }
 
 .logo {
     text-align: center;
-    color: #52b788;
+    color: var(--green);
     margin-bottom: 30px;
+    font-size: 22px;
 }
 
 .menu {
@@ -40,127 +66,285 @@ body {
 }
 
 .menu li {
-    margin: 10px 0;
+    margin: 7px 0;
 }
 
 .menu a {
     display: block;
     padding: 12px;
-    color: white;
+    color: var(--text);
     text-decoration: none;
     border-radius: 8px;
+    transition: .2s;
 }
 
-.menu a:hover {
-    background: #2a2a35;
-    color: #52b788;
+.menu a:hover,
+.menu a.active {
+    background: var(--surface);
+    color: var(--green);
 }
 
-.content {
+.main {
     flex: 1;
     min-width: 0;
-    padding: 30px;
-}
-
-.card {
-    background: #1e1e24;
-    border: 1px solid #333;
-    border-radius: 12px;
     padding: 25px;
 }
 
-h1 {
-    color: #52b788;
-    margin-bottom: 10px;
+.topbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.menu-toggle {
+    display: none;
+    padding: 10px 13px;
+    color: var(--green);
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
 }
 
 .subtitle {
-    color: #bdbdbd;
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 23px;
     margin-bottom: 20px;
+}
+
+h1 {
+    color: var(--green);
+    font-size: 27px;
+    margin-bottom: 8px;
+}
+
+h2 {
+    color: var(--green);
+    font-size: 19px;
+    margin-bottom: 16px;
+}
+
+h3 {
+    font-size: 15px;
+    margin-bottom: 12px;
 }
 
 .stats {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 15px;
-    margin-bottom: 25px;
+    margin-bottom: 20px;
 }
 
 .stat-card {
-    background: #2a2a35;
+    background: var(--panel);
+    border: 1px solid var(--border);
     padding: 20px;
-    border-radius: 10px;
-    text-align: center;
+    border-radius: 12px;
 }
 
-.stat-card h3 {
-    color: #52b788;
+.stat-label {
+    color: var(--muted);
+    font-size: 13px;
     margin-bottom: 10px;
 }
 
 .stat-value {
-    font-size: 24px;
+    color: var(--green);
+    font-size: 28px;
     font-weight: bold;
 }
 
-input {
+.stat-note {
+    color: var(--muted);
+    font-size: 11px;
+    margin-top: 7px;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 13px;
+    margin: 18px 0;
+}
+
+.field label {
+    display: block;
+    color: var(--muted);
+    font-size: 13px;
+    margin-bottom: 8px;
+}
+
+input, select {
     width: 100%;
+    min-width: 0;
     padding: 12px;
-    margin-bottom: 15px;
-    border: none;
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border);
     border-radius: 8px;
-    background: #2a2a35;
+    outline: none;
+}
+
+input:focus, select:focus {
+    border-color: var(--green);
+}
+
+input::placeholder {
+    color: #9999a5;
+}
+
+.btn {
+    padding: 11px 15px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    font-size: 13px;
+    font-weight: bold;
+    transition: .2s;
+}
+
+.btn-primary {
+    background: var(--green);
+    color: #121214;
+}
+
+.btn-primary:hover {
+    background: var(--green-dark);
     color: white;
 }
 
-button {
-    background: #52b788;
-    color: #121214;
-    border: none;
-    padding: 12px 20px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: bold;
+.btn-secondary {
+    background: var(--surface);
+    color: var(--text);
+    border-color: var(--border);
 }
 
-button:hover {
-    background: #40916c;
+.btn-secondary:hover {
+    color: var(--green);
+    border-color: var(--green);
+}
+
+.btn-danger {
+    background: transparent;
+    color: var(--red);
+    border-color: #744149;
+}
+
+.btn-danger:hover {
+    background: #382329;
+}
+
+.form-actions, .toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.toolbar {
+    margin: 18px 0;
+}
+
+.toolbar input {
+    flex: 1;
+    min-width: 180px;
+}
+
+.message {
+    font-size: 13px;
+    line-height: 1.5;
+    margin-top: 12px;
+    color: var(--muted);
+}
+
+.message.error {
+    color: var(--red);
 }
 
 .gpa-list {
-    margin-top: 25px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 13px;
 }
 
 .gpa-item {
-    background: #2a2a35;
-    padding: 15px;
-    border-radius: 10px;
-    margin-bottom: 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 11px;
+    padding: 17px;
+}
+
+.gpa-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
 }
 
 .semester {
-    color: #52b788;
+    color: var(--green);
     font-weight: bold;
-    margin-bottom: 5px;
 }
 
-.gpa-graphs {
-    margin-top: 30px;
+.record-status {
+    font-size: 11px;
+    color: var(--muted);
 }
 
-.gpa-graphs h2,
-.gpa-graph-card h3 {
-    color: #52b788;
-    margin-bottom: 18px;
+.gpa-values {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 15px;
 }
 
-.gpa-graph-card {
-    background: #2a2a35;
-    border: 1px solid #393943;
+.gpa-value {
+    padding: 12px;
+    background: #22222a;
+    border-radius: 8px;
+}
+
+.gpa-value span {
+    display: block;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 7px;
+}
+
+.gpa-value strong {
+    font-size: 21px;
+    color: var(--green);
+}
+
+.gpa-item-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.gpa-item-actions button {
+    padding: 8px 11px;
+}
+
+.graph-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+}
+
+.graph-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
     border-radius: 12px;
-    padding: 20px;
-    margin: 20px 0;
-    width: 100%;
+    padding: 18px;
     min-width: 0;
 }
 
@@ -170,276 +354,522 @@ button:hover {
     width: 100%;
 }
 
-.gpa-graph-card canvas {
-    max-width: 100%;
+.empty {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 35px 15px;
+    color: var(--muted);
+    line-height: 1.7;
 }
 
-@media (max-width: 700px) {
-    body {
-        flex-direction: column;
-    }
+.empty-icon {
+    font-size: 35px;
+    margin-bottom: 10px;
+}
 
+.backdrop {
+    display: none;
+}
+
+@media (max-width: 1050px) {
+    .graph-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 850px) {
     .sidebar {
-        width: 100%;
+        position: fixed;
+        z-index: 20;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        overflow-y: auto;
+        transform: translateX(-100%);
+        transition: transform .25s;
     }
 
-    .content {
-        padding: 15px;
+    .sidebar.open {
+        transform: translateX(0);
+    }
+
+    .backdrop.show {
+        display: block;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,.65);
+        z-index: 19;
+    }
+
+    .menu-toggle {
+        display: block;
+    }
+
+    .main {
+        padding: 13px;
+    }
+
+    .stats {
+        gap: 9px;
+    }
+
+    .stat-card {
+        padding: 14px;
+    }
+
+    .stat-value {
+        font-size: 23px;
+    }
+
+    .gpa-list {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 560px) {
+    .stats {
+        grid-template-columns: 1fr;
+    }
+
+    .stat-card {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+    }
+
+    .stat-label {
+        margin: 0;
+    }
+
+    .stat-note {
+        display: none;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .panel {
+        padding: 16px;
+    }
+
+    h1 {
+        font-size: 23px;
+    }
+
+    .chart-container {
+        height: 240px;
+    }
+
+    .toolbar button {
+        flex: 1;
     }
 }
 </style>
 </head>
 
 <body>
+<div class="layout">
 
-<div class="sidebar">
+<aside class="sidebar" id="sidebar">
     <h2 class="logo">🎓 Smart Student</h2>
     <ul class="menu">
         <li><a href="dashboard.html">🏠 Dashboard</a></li>
         <li><a href="notes.html">📚 Notes</a></li>
         <li><a href="assignments.html">📝 Assignments</a></li>
         <li><a href="attendance.html">📅 Attendance</a></li>
-        <li><a href="gpa.html">📊 GPA Tracker</a></li>
+        <li><a class="active" href="gpa.html">📊 GPA Tracker</a></li>
         <li><a href="reminders.html">⏰ Reminders</a></li>
         <li><a href="ainotes.html">🤖 AI Notes</a></li>
         <li><a href="flashcards.html">📖 Flashcards</a></li>
         <li><a href="chatbot.html">🤖 AI Assistant</a></li>
     </ul>
-</div>
+</aside>
 
-<div class="content">
-<div class="card">
+<div class="backdrop" id="backdrop"></div>
 
-    <h1>📊 GPA Tracker</h1>
-    <p class="subtitle">Track Semester GPA and Overall CGPA</p>
+<main class="main">
 
-    <div class="stats">
-        <div class="stat-card">
-            <h3>Latest SGPA</h3>
-            <div id="latestSgpa" class="stat-value">0.0</div>
-        </div>
-        <div class="stat-card">
-            <h3>Current CGPA</h3>
-            <div id="latestCgpa" class="stat-value">0.0</div>
-        </div>
+    <div class="topbar">
+        <button class="menu-toggle" id="menuToggle"
+                aria-label="Open navigation">☰</button>
+        <span class="subtitle">Your academic performance at a glance</span>
     </div>
 
-    <input type="number" id="semester"
-           placeholder="Semester (1-8)" min="1" max="8"
-           step="1" required>
+    <section class="panel">
+        <h1>📊 GPA Tracker</h1>
+        <p class="subtitle">
+            Track semester SGPA, current CGPA, and your academic progress.
+        </p>
+    </section>
 
-    <input type="number" id="sgpa"
-           placeholder="SGPA" min="0" max="10"
-           step="0.01" required>
-
-    <input type="number" id="cgpa"
-           placeholder="CGPA" min="0" max="10"
-           step="0.01" required>
-
-    <button type="button" onclick="saveGpa()">Save GPA</button>
-
-    <!-- Saved GPA records: keep this separate from the graphs -->
-    <div class="gpa-list" id="gpaList"></div>
-
-    <!-- Graphs must NOT be inside gpaList -->
-    <section class="gpa-graphs">
-        <h2>📊 GPA Performance</h2>
-
-        <div class="gpa-graph-card">
-            <h3>Semester-wise SGPA</h3>
-            <div class="chart-container">
-                <canvas id="sgpaChart"></canvas>
+    <section class="stats">
+        <div class="stat-card">
+            <div>
+                <div class="stat-label">Latest SGPA</div>
+                <div class="stat-note">Most recent recorded semester</div>
             </div>
+            <div class="stat-value" id="latestSgpa">—</div>
         </div>
 
-        <div class="gpa-graph-card">
-            <h3>SGPA vs CGPA</h3>
-            <div class="chart-container">
-                <canvas id="cgpaChart"></canvas>
+        <div class="stat-card">
+            <div>
+                <div class="stat-label">Current CGPA</div>
+                <div class="stat-note">Latest recorded cumulative GPA</div>
             </div>
+            <div class="stat-value" id="latestCgpa">—</div>
+        </div>
+
+        <div class="stat-card">
+            <div>
+                <div class="stat-label">Semesters Recorded</div>
+                <div class="stat-note">Out of 8 semesters</div>
+            </div>
+            <div class="stat-value" id="semesterCount">0/8</div>
         </div>
     </section>
 
-</div>
+    <section class="panel" id="formPanel">
+        <h2 id="formTitle">➕ Add Semester GPA</h2>
+
+        <form id="gpaForm">
+            <div class="form-grid">
+                <div class="field">
+                    <label for="semester">Semester</label>
+                    <select id="semester" required>
+                        <option value="">Choose semester</option>
+                        <option value="1">Semester 1</option>
+                        <option value="2">Semester 2</option>
+                        <option value="3">Semester 3</option>
+                        <option value="4">Semester 4</option>
+                        <option value="5">Semester 5</option>
+                        <option value="6">Semester 6</option>
+                        <option value="7">Semester 7</option>
+                        <option value="8">Semester 8</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label for="sgpa">SGPA (0–10)</label>
+                    <input type="number" id="sgpa"
+                        placeholder="Example: 8.25"
+                        min="0" max="10" step="0.01" required>
+                </div>
+
+                <div class="field">
+                    <label for="cgpa">CGPA (0–10)</label>
+                    <input type="number" id="cgpa"
+                        placeholder="Example: 8.10"
+                        min="0" max="10" step="0.01" required>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button class="btn btn-primary" id="saveBtn" type="submit">
+                    💾 Save GPA
+                </button>
+                <button class="btn btn-secondary" id="cancelBtn"
+                        type="button" hidden>
+                    Cancel Edit
+                </button>
+            </div>
+
+            <p class="message" id="formMessage" role="status"></p>
+        </form>
+    </section>
+
+    <section class="panel">
+        <h2>📚 Semester Records</h2>
+        <p class="subtitle">
+            Search your records, edit a semester, or export your GPA data.
+        </p>
+
+        <div class="toolbar">
+            <input id="searchInput" type="search"
+                placeholder="Search semester or GPA...">
+
+            <button class="btn btn-secondary" id="exportBtn" type="button">
+                ⬇ Export CSV
+            </button>
+
+            <button class="btn btn-secondary" id="refreshBtn" type="button">
+                ↻ Refresh
+            </button>
+        </div>
+
+        <div class="gpa-list" id="gpaList">
+            <div class="empty">Loading GPA records...</div>
+        </div>
+    </section>
+
+    <section class="panel">
+        <h2>📈 GPA Performance</h2>
+        <p class="subtitle">
+            Compare semester performance and cumulative GPA.
+        </p>
+
+        <div class="graph-grid">
+            <div class="graph-card">
+                <h3>Semester-wise SGPA</h3>
+                <div class="chart-container">
+                    <canvas id="sgpaChart"></canvas>
+                </div>
+            </div>
+
+            <div class="graph-card">
+                <h3>SGPA vs CGPA</h3>
+                <div class="chart-container">
+                    <canvas id="cgpaChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <p class="message" id="chartMessage"></p>
+    </section>
+
+</main>
 </div>
 
 <script>
+"use strict";
+
+const API_URL = "/api/gpa";
+
+let gpas = [];
 let sgpaChart = null;
 let cgpaChart = null;
+let editingSemester = null;
+let loading = false;
 
-async function loadGpa() {
-    try {
-        const response = await fetch("/api/gpa");
+const form = document.getElementById("gpaForm");
+const semesterInput = document.getElementById("semester");
+const sgpaInput = document.getElementById("sgpa");
+const cgpaInput = document.getElementById("cgpa");
+const gpaList = document.getElementById("gpaList");
+const searchInput = document.getElementById("searchInput");
+const saveBtn = document.getElementById("saveBtn");
+const cancelBtn = document.getElementById("cancelBtn");
+const formMessage = document.getElementById("formMessage");
 
-        if (!response.ok) {
-            throw new Error("Failed to load GPA records: " + response.status);
-        }
-
-        const gpas = await response.json();
-
-        gpas.sort((a, b) => Number(a.semester) - Number(b.semester));
-
-        const list = document.getElementById("gpaList");
-        list.replaceChildren();
-
-        if (gpas.length > 0) {
-            const latest = gpas[gpas.length - 1];
-
-            document.getElementById("latestSgpa").textContent =
-                Number(latest.sgpa).toFixed(2);
-
-            document.getElementById("latestCgpa").textContent =
-                Number(latest.cgpa).toFixed(2);
-        } else {
-            document.getElementById("latestSgpa").textContent = "0.00";
-            document.getElementById("latestCgpa").textContent = "0.00";
-        }
-
-        gpas.forEach(gpa => {
-            const item = document.createElement("div");
-            item.className = "gpa-item";
-
-            const title = document.createElement("div");
-            title.className = "semester";
-            title.textContent = "Semester " + gpa.semester;
-
-            const sgpaText = document.createElement("div");
-            sgpaText.textContent = "SGPA: " + gpa.sgpa;
-
-            const cgpaText = document.createElement("div");
-            cgpaText.textContent = "CGPA: " + gpa.cgpa;
-
-            item.append(title, sgpaText, cgpaText);
-            list.appendChild(item);
-        });
-
-        drawGpaCharts(gpas);
-
-    } catch (error) {
-        console.error(error);
-        alert("Unable to load GPA. Check that Spring Boot is running.");
-    }
+function setMessage(message, isError = false) {
+    formMessage.textContent = message;
+    formMessage.classList.toggle("error", isError);
 }
 
-function drawGpaCharts(gpas) {
-    const records = [...gpas].sort(
+function setChartMessage(message) {
+    document.getElementById("chartMessage").textContent = message;
+}
+
+function validScore(value) {
+    const number = Number(value);
+    return value !== "" && Number.isFinite(number) &&
+        number >= 0 && number <= 10;
+}
+
+function sortRecords(records) {
+    return [...records].sort(
         (a, b) => Number(a.semester) - Number(b.semester)
     );
-
-    const labels = records.map(g => "Sem " + g.semester);
-    const sgpa = records.map(g => Number(g.sgpa));
-    const cgpa = records.map(g => Number(g.cgpa));
-
-    const options = {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-            y: {
-                min: 0,
-                max: 10,
-                ticks: { color: "#ffffff" },
-                grid: { color: "#41404a" }
-            },
-            x: {
-                ticks: { color: "#ffffff" },
-                grid: { color: "#41404a" }
-            }
-        },
-        plugins: {
-            legend: {
-                labels: { color: "#ffffff" }
-            }
-        }
-    };
-
-    if (sgpaChart) sgpaChart.destroy();
-    if (cgpaChart) cgpaChart.destroy();
-
-    sgpaChart = new Chart(document.getElementById("sgpaChart"), {
-        type: "line",
-        data: {
-            labels,
-            datasets: [{
-                label: "SGPA",
-                data: sgpa,
-                borderColor: "#52b788",
-                backgroundColor: "rgba(82,183,136,0.2)",
-                pointBackgroundColor: "#52b788",
-                fill: true,
-                tension: 0.3
-            }]
-        },
-        options
-    });
-
-    cgpaChart = new Chart(document.getElementById("cgpaChart"), {
-        type: "bar",
-        data: {
-            labels,
-            datasets: [
-                {
-                    label: "SGPA",
-                    data: sgpa,
-                    backgroundColor: "#52b788"
-                },
-                {
-                    label: "CGPA",
-                    data: cgpa,
-                    backgroundColor: "#8b80d9"
-                }
-            ]
-        },
-        options
-    });
 }
 
-async function saveGpa() {
-    const semesterInput = document.getElementById("semester");
-    const sgpaInput = document.getElementById("sgpa");
-    const cgpaInput = document.getElementById("cgpa");
+function getFilteredRecords() {
+    const query = searchInput.value.trim().toLowerCase();
 
-    if (!semesterInput.value || !sgpaInput.value || !cgpaInput.value) {
-        alert("Fill all fields");
-        return;
+    return sortRecords(gpas).filter(record =>
+        ("semester " + record.semester).toLowerCase().includes(query) ||
+        String(record.sgpa).includes(query) ||
+        String(record.cgpa).includes(query)
+    );
+}
+
+async function requestJSON(url, options = {}) {
+    const response = await fetch(url, {
+        ...options,
+        headers: {
+            ...(options.body ? { "Content-Type": "application/json" } : {}),
+            ...(options.headers || {})
+        }
+    });
+
+    if (!response.ok) {
+        throw new Error("Server returned HTTP " + response.status);
     }
 
-    const semester = Number(semesterInput.value);
-    const sgpa = Number(sgpaInput.value);
-    const cgpa = Number(cgpaInput.value);
+    if (response.status === 204) return null;
 
-    if (!Number.isInteger(semester) || semester < 1 || semester > 8 ||
-        !Number.isFinite(sgpa) || sgpa < 0 || sgpa > 10 ||
-        !Number.isFinite(cgpa) || cgpa < 0 || cgpa > 10) {
-        alert("Enter semester 1-8 and SGPA/CGPA between 0 and 10.");
-        return;
-    }
+    const contentType = response.headers.get("content-type") || "";
+    if (!contentType.includes("application/json")) return null;
+
+    return response.json();
+}
+
+async function loadGpa() {
+    if (loading) return;
+    loading = true;
+
+    const refreshBtn = document.getElementById("refreshBtn");
+    refreshBtn.disabled = true;
+    gpaList.textContent = "Loading GPA records...";
 
     try {
-        const response = await fetch("/api/gpa", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ semester, sgpa, cgpa })
-        });
+        const data = await requestJSON(API_URL);
 
-        if (!response.ok) {
-            throw new Error("Save failed: " + response.status);
+        if (!Array.isArray(data)) {
+            throw new Error("Expected an array of GPA records from /api/gpa.");
         }
 
-        semesterInput.value = "";
-        sgpaInput.value = "";
-        cgpaInput.value = "";
+        gpas = data.filter(record =>
+            record &&
+            Number.isInteger(Number(record.semester)) &&
+            Number(record.semester) >= 1 &&
+            Number(record.semester) <= 8 &&
+            validScore(String(record.sgpa ?? "")) &&
+            validScore(String(record.cgpa ?? ""))
+        ).map(record => ({
+            ...record,
+            semester: Number(record.semester),
+            sgpa: Number(record.sgpa),
+            cgpa: Number(record.cgpa)
+        }));
 
-        await loadGpa();
-        alert("GPA saved successfully!");
+        updateSummary();
+        renderRecords();
+        drawCharts();
 
+        setMessage("GPA records loaded successfully.");
     } catch (error) {
-        console.error(error);
-        alert("Could not save GPA. Check the Spring Boot console.");
+        console.error("Failed to load GPA:", error);
+        gpaList.replaceChildren();
+
+        const empty = document.createElement("div");
+        empty.className = "empty";
+        empty.textContent =
+            "Unable to load GPA records. Check that Spring Boot is running and GET /api/gpa works.";
+        gpaList.appendChild(empty);
+
+        setMessage(error.message, true);
+        setChartMessage("Charts require valid GPA records from the backend.");
+        updateSummary();
+        drawCharts();
+    } finally {
+        loading = false;
+        refreshBtn.disabled = false;
     }
 }
 
-document.addEventListener("DOMContentLoaded", loadGpa);
-</script>
+function updateSummary() {
+    const records = sortRecords(gpas);
+    const latest = records.length ? records[records.length - 1] : null;
 
-</body>
-</html>
+    document.getElementById("latestSgpa").textContent =
+        latest ? latest.sgpa.toFixed(2) : "—";
+
+    document.getElementById("latestCgpa").textContent =
+        latest ? latest.cgpa.toFixed(2) : "—";
+
+    document.getElementById("semesterCount").textContent =
+        `${new Set(records.map(record => record.semester)).size}/8`;
+}
+
+function makeButton(label, className, action) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "btn " + className;
+    button.textContent = label;
+    button.addEventListener("click", action);
+    return button;
+}
+
+function renderRecords() {
+    gpaList.replaceChildren();
+
+    const records = getFilteredRecords();
+
+    if (records.length === 0) {
+        const empty = document.createElement("div");
+        empty.className = "empty";
+        empty.textContent = gpas.length
+            ? "No records match your search."
+            : "No GPA records yet. Add your first semester above.";
+        gpaList.appendChild(empty);
+        return;
+    }
+
+    records.forEach(record => {
+        const item = document.createElement("article");
+        item.className = "gpa-item";
+
+        const header = document.createElement("div");
+        header.className = "gpa-item-header";
+
+        const title = document.createElement("div");
+        title.className = "semester";
+        title.textContent = "Semester " + record.semester;
+
+        const status = document.createElement("span");
+        status.className = "record-status";
+        status.textContent = "Saved record";
+
+        header.append(title, status);
+
+        const values = document.createElement("div");
+        values.className = "gpa-values";
+
+        const sgpaBox = document.createElement("div");
+        sgpaBox.className = "gpa-value";
+
+        const sgpaLabel = document.createElement("span");
+        sgpaLabel.textContent = "SGPA";
+
+        const sgpaValue = document.createElement("strong");
+        sgpaValue.textContent = record.sgpa.toFixed(2);
+
+        sgpaBox.append(sgpaLabel, sgpaValue);
+
+        const cgpaBox = document.createElement("div");
+        cgpaBox.className = "gpa-value";
+
+        const cgpaLabel = document.createElement("span");
+        cgpaLabel.textContent = "CGPA";
+
+        const cgpaValue = document.createElement("strong");
+        cgpaValue.textContent = record.cgpa.toFixed(2);
+
+        cgpaBox.append(cgpaLabel, cgpaValue);
+        values.append(sgpaBox, cgpaBox);
+
+        const actions = document.createElement("div");
+        actions.className = "gpa-item-actions";
+
+        actions.appendChild(makeButton("✏️ Edit", "btn-secondary", () => {
+            startEdit(record);
+        }));
+
+        // Delete requires DELETE /api/gpa/{semester} on the backend.
+        actions.appendChild(makeButton("🗑 Delete", "btn-danger", async () => {
+            await deleteGpa(record);
+        }));
+
+        item.append(header, values, actions);
+        gpaList.appendChild(item);
+    });
+}
+
+function startEdit(record) {
+    editingSemester = record.semester;
+    semesterInput.value = String(record.semester);
+    sgpaInput.value = record.sgpa;
+    cgpaInput.value = record.cgpa;
+
+    // Changing the semester during editing would require an additional
+    // backend operation, so keep the existing semester fixed.
+    semesterInput.disabled = true;
+
+    document.getElementById("formTitle").textContent =
+        "✏️ Edit Semester " + record.semester;
+
+    saveBtn.textContent = "Save Changes";
+    cancelBtn.hidden = false;
+
+    setMessage("Editing semester " + record.semester + ". Make changes and click Save.");
