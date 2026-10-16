@@ -16,7 +16,8 @@ public class SecurityConfig {
 
     private final CustomUserDetailsService customUserDetailsService;
 
-    public SecurityConfig(CustomUserDetailsService customUserDetailsService) {
+    public SecurityConfig(
+            CustomUserDetailsService customUserDetailsService) {
         this.customUserDetailsService = customUserDetailsService;
     }
 
@@ -29,26 +30,32 @@ public class SecurityConfig {
 
             .authorizeHttpRequests(auth -> auth
 
+                // Public pages and registration
                 .requestMatchers(
-                        "/",
-                        "/index.html",
-                        "/manifest.json",
-                        "/sw.js",
-                        "/icon-192.png",
-                        "/icon-512.png",
-                         "/css/**",
-                        "/js/**"
+                    "/",
+                    "/index.html",
+                    "/login",
+                    "/register",
+                    "/perform_login",
+                    "/manifest.json",
+                    "/sw.js",
+                    "/icon-192.png",
+                    "/icon-512.png",
+                    "/css/**",
+                    "/js/**"
                 ).permitAll()
 
+                // Protected student pages
                 .requestMatchers(
-                        "/dashboard.html",
-                        "/notes.html",
-                        "/assignments.html",
-                        "/attendance.html",
-                        "/gpa.html",
-                        "/reminders.html",
-                        "/ainotes.html",
-                        "/flashcards.html"
+                    "/dashboard.html",
+                    "/notes.html",
+                    "/assignments.html",
+                    "/attendance.html",
+                    "/gpa.html",
+                    "/reminders.html",
+                    "/ainotes.html",
+                    "/flashcards.html",
+                    "/chatbot.html"
                 ).authenticated()
 
                 .anyRequest().authenticated()
@@ -57,6 +64,8 @@ public class SecurityConfig {
             .formLogin(form -> form
                 .loginPage("/index.html")
                 .loginProcessingUrl("/perform_login")
+                .usernameParameter("username")
+                .passwordParameter("password")
                 .defaultSuccessUrl("/dashboard.html", true)
                 .failureUrl("/index.html?error=true")
                 .permitAll()

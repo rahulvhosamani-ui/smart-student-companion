@@ -1,168 +1,199 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>GPA Tracker</title>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <style>
-
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-    font-family:Arial,sans-serif;
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
 }
 
-body{
-    background:#121214;
-    color:white;
-    display:flex;
-    min-height:100vh;
+body {
+    background: #121214;
+    color: white;
+    display: flex;
+    min-height: 100vh;
 }
 
-.sidebar{
-    width:250px;
-    background:#1e1e24;
-    padding:20px;
+.sidebar {
+    width: 250px;
+    flex-shrink: 0;
+    background: #1e1e24;
+    padding: 20px;
 }
 
-.logo{
-    text-align:center;
-    color:#52b788;
-    margin-bottom:30px;
+.logo {
+    text-align: center;
+    color: #52b788;
+    margin-bottom: 30px;
 }
 
-.menu{
-    list-style:none;
+.menu {
+    list-style: none;
 }
 
-.menu li{
-    margin:10px 0;
+.menu li {
+    margin: 10px 0;
 }
 
-.menu a{
-    display:block;
-    padding:12px;
-    color:white;
-    text-decoration:none;
-    border-radius:8px;
+.menu a {
+    display: block;
+    padding: 12px;
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
 }
 
-.menu a:hover{
-    background:#2a2a35;
-    color:#52b788;
+.menu a:hover {
+    background: #2a2a35;
+    color: #52b788;
 }
 
-.content{
-    flex:1;
-    padding:30px;
+.content {
+    flex: 1;
+    min-width: 0;
+    padding: 30px;
 }
 
-.card{
-    background:#1e1e24;
-    border:1px solid #333;
-    border-radius:12px;
-    padding:25px;
+.card {
+    background: #1e1e24;
+    border: 1px solid #333;
+    border-radius: 12px;
+    padding: 25px;
 }
 
-h1{
-    color:#52b788;
-    margin-bottom:10px;
+h1 {
+    color: #52b788;
+    margin-bottom: 10px;
 }
 
-.subtitle{
-    color:#bdbdbd;
-    margin-bottom:20px;
+.subtitle {
+    color: #bdbdbd;
+    margin-bottom: 20px;
 }
 
-.stats{
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-    gap:15px;
-    margin-bottom:25px;
+.stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 15px;
+    margin-bottom: 25px;
 }
 
-.stat-card{
-    background:#2a2a35;
-    padding:20px;
-    border-radius:10px;
-    text-align:center;
+.stat-card {
+    background: #2a2a35;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
 }
 
-.stat-card h3{
-    color:#52b788;
-    margin-bottom:10px;
+.stat-card h3 {
+    color: #52b788;
+    margin-bottom: 10px;
 }
 
-.stat-value{
-    font-size:24px;
-    font-weight:bold;
+.stat-value {
+    font-size: 24px;
+    font-weight: bold;
 }
 
-input{
-    width:100%;
-    padding:12px;
-    margin-bottom:15px;
-    border:none;
-    border-radius:8px;
-    background:#2a2a35;
-    color:white;
+input {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 15px;
+    border: none;
+    border-radius: 8px;
+    background: #2a2a35;
+    color: white;
 }
 
-button{
-    background:#52b788;
-    color:#121214;
-    border:none;
-    padding:12px 20px;
-    border-radius:8px;
-    cursor:pointer;
-    font-weight:bold;
+button {
+    background: #52b788;
+    color: #121214;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
 }
 
-button:hover{
-    background:#40916c;
+button:hover {
+    background: #40916c;
 }
 
-.gpa-list{
-    margin-top:25px;
+.gpa-list {
+    margin-top: 25px;
 }
 
-.gpa-item{
-
-    background:#2a2a35;
-
-    padding:15px;
-
-    border-radius:10px;
-
-    margin-bottom:12px;
-
-    display:flex;
-
-    justify-content:space-between;
-
-    align-items:center;
+.gpa-item {
+    background: #2a2a35;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 12px;
 }
 
-.semester{
-    color:#52b788;
-    font-weight:bold;
+.semester {
+    color: #52b788;
+    font-weight: bold;
+    margin-bottom: 5px;
 }
 
+.gpa-graphs {
+    margin-top: 30px;
+}
+
+.gpa-graphs h2,
+.gpa-graph-card h3 {
+    color: #52b788;
+    margin-bottom: 18px;
+}
+
+.gpa-graph-card {
+    background: #2a2a35;
+    border: 1px solid #393943;
+    border-radius: 12px;
+    padding: 20px;
+    margin: 20px 0;
+    width: 100%;
+    min-width: 0;
+}
+
+.chart-container {
+    position: relative;
+    height: 280px;
+    width: 100%;
+}
+
+.gpa-graph-card canvas {
+    max-width: 100%;
+}
+
+@media (max-width: 700px) {
+    body {
+        flex-direction: column;
+    }
+
+    .sidebar {
+        width: 100%;
+    }
+
+    .content {
+        padding: 15px;
+    }
+}
 </style>
-
 </head>
 
 <body>
 
 <div class="sidebar">
-
     <h2 class="logo">🎓 Smart Student</h2>
-
     <ul class="menu">
         <li><a href="dashboard.html">🏠 Dashboard</a></li>
         <li><a href="notes.html">📚 Notes</a></li>
@@ -174,187 +205,240 @@ button:hover{
         <li><a href="flashcards.html">📖 Flashcards</a></li>
         <li><a href="chatbot.html">🤖 AI Assistant</a></li>
     </ul>
-
 </div>
 
 <div class="content">
-
 <div class="card">
 
     <h1>📊 GPA Tracker</h1>
-
-    <p class="subtitle">
-        Track Semester GPA and Overall CGPA
-    </p>
+    <p class="subtitle">Track Semester GPA and Overall CGPA</p>
 
     <div class="stats">
-
         <div class="stat-card">
             <h3>Latest SGPA</h3>
-            <div id="latestSgpa"
-                 class="stat-value">
-                 0.0
-            </div>
+            <div id="latestSgpa" class="stat-value">0.0</div>
         </div>
-
         <div class="stat-card">
             <h3>Current CGPA</h3>
-            <div id="latestCgpa"
-                 class="stat-value">
-                 0.0
+            <div id="latestCgpa" class="stat-value">0.0</div>
+        </div>
+    </div>
+
+    <input type="number" id="semester"
+           placeholder="Semester (1-8)" min="1" max="8"
+           step="1" required>
+
+    <input type="number" id="sgpa"
+           placeholder="SGPA" min="0" max="10"
+           step="0.01" required>
+
+    <input type="number" id="cgpa"
+           placeholder="CGPA" min="0" max="10"
+           step="0.01" required>
+
+    <button type="button" onclick="saveGpa()">Save GPA</button>
+
+    <!-- Saved GPA records: keep this separate from the graphs -->
+    <div class="gpa-list" id="gpaList"></div>
+
+    <!-- Graphs must NOT be inside gpaList -->
+    <section class="gpa-graphs">
+        <h2>📊 GPA Performance</h2>
+
+        <div class="gpa-graph-card">
+            <h3>Semester-wise SGPA</h3>
+            <div class="chart-container">
+                <canvas id="sgpaChart"></canvas>
             </div>
         </div>
 
-    </div>
-
-    <input
-        type="number"
-        id="semester"
-        placeholder="Semester (1-8)"
-        min="1"
-        max="8">
-
-    <input
-        type="number"
-        id="sgpa"
-        placeholder="SGPA"
-        min="0"
-        max="10"
-        step="0.01">
-
-    <input
-        type="number"
-        id="cgpa"
-        placeholder="CGPA"
-        min="0"
-        max="10"
-        step="0.01">
-
-    <button onclick="saveGpa()">
-        Save GPA
-    </button>
-
-    <div
-        class="gpa-list"
-        id="gpaList">
-
-    </div>
+        <div class="gpa-graph-card">
+            <h3>SGPA vs CGPA</h3>
+            <div class="chart-container">
+                <canvas id="cgpaChart"></canvas>
+            </div>
+        </div>
+    </section>
 
 </div>
-
 </div>
 
 <script>
+let sgpaChart = null;
+let cgpaChart = null;
 
-loadGpa();
+async function loadGpa() {
+    try {
+        const response = await fetch("/api/gpa");
 
-async function loadGpa(){
-
-    try{
-
-        const response =
-            await fetch("/api/gpa");
-
-        const gpas =
-            await response.json();
-
-        let html = "";
-
-        if(gpas.length > 0){
-
-            const latest =
-                gpas[gpas.length-1];
-
-            document.getElementById(
-                "latestSgpa").innerText =
-                latest.sgpa;
-
-            document.getElementById(
-                "latestCgpa").innerText =
-                latest.cgpa;
+        if (!response.ok) {
+            throw new Error("Failed to load GPA records: " + response.status);
         }
 
-        gpas.forEach(gpa=>{
+        const gpas = await response.json();
 
-            html += `
-            <div class="gpa-item">
+        gpas.sort((a, b) => Number(a.semester) - Number(b.semester));
 
-                <div>
+        const list = document.getElementById("gpaList");
+        list.replaceChildren();
 
-                    <div class="semester">
-                        Semester ${gpa.semester}
-                    </div>
+        if (gpas.length > 0) {
+            const latest = gpas[gpas.length - 1];
 
-                    <div>
-                        SGPA : ${gpa.sgpa}
-                    </div>
+            document.getElementById("latestSgpa").textContent =
+                Number(latest.sgpa).toFixed(2);
 
-                    <div>
-                        CGPA : ${gpa.cgpa}
-                    </div>
+            document.getElementById("latestCgpa").textContent =
+                Number(latest.cgpa).toFixed(2);
+        } else {
+            document.getElementById("latestSgpa").textContent = "0.00";
+            document.getElementById("latestCgpa").textContent = "0.00";
+        }
 
-                </div>
+        gpas.forEach(gpa => {
+            const item = document.createElement("div");
+            item.className = "gpa-item";
 
-            </div>
-            `;
+            const title = document.createElement("div");
+            title.className = "semester";
+            title.textContent = "Semester " + gpa.semester;
 
+            const sgpaText = document.createElement("div");
+            sgpaText.textContent = "SGPA: " + gpa.sgpa;
+
+            const cgpaText = document.createElement("div");
+            cgpaText.textContent = "CGPA: " + gpa.cgpa;
+
+            item.append(title, sgpaText, cgpaText);
+            list.appendChild(item);
         });
 
-        document.getElementById(
-            "gpaList").innerHTML = html;
+        drawGpaCharts(gpas);
 
+    } catch (error) {
+        console.error(error);
+        alert("Unable to load GPA. Check that Spring Boot is running.");
     }
-    catch(error){
-
-        console.log(error);
-
-    }
-
 }
 
-async function saveGpa(){
+function drawGpaCharts(gpas) {
+    const records = [...gpas].sort(
+        (a, b) => Number(a.semester) - Number(b.semester)
+    );
 
-    const semester =
-        document.getElementById("semester").value;
+    const labels = records.map(g => "Sem " + g.semester);
+    const sgpa = records.map(g => Number(g.sgpa));
+    const cgpa = records.map(g => Number(g.cgpa));
 
-    const sgpa =
-        document.getElementById("sgpa").value;
+    const options = {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                min: 0,
+                max: 10,
+                ticks: { color: "#ffffff" },
+                grid: { color: "#41404a" }
+            },
+            x: {
+                ticks: { color: "#ffffff" },
+                grid: { color: "#41404a" }
+            }
+        },
+        plugins: {
+            legend: {
+                labels: { color: "#ffffff" }
+            }
+        }
+    };
 
-    const cgpa =
-        document.getElementById("cgpa").value;
+    if (sgpaChart) sgpaChart.destroy();
+    if (cgpaChart) cgpaChart.destroy();
 
-    if(
-        semester==="" ||
-        sgpa==="" ||
-        cgpa===""){
+    sgpaChart = new Chart(document.getElementById("sgpaChart"), {
+        type: "line",
+        data: {
+            labels,
+            datasets: [{
+                label: "SGPA",
+                data: sgpa,
+                borderColor: "#52b788",
+                backgroundColor: "rgba(82,183,136,0.2)",
+                pointBackgroundColor: "#52b788",
+                fill: true,
+                tension: 0.3
+            }]
+        },
+        options
+    });
+
+    cgpaChart = new Chart(document.getElementById("cgpaChart"), {
+        type: "bar",
+        data: {
+            labels,
+            datasets: [
+                {
+                    label: "SGPA",
+                    data: sgpa,
+                    backgroundColor: "#52b788"
+                },
+                {
+                    label: "CGPA",
+                    data: cgpa,
+                    backgroundColor: "#8b80d9"
+                }
+            ]
+        },
+        options
+    });
+}
+
+async function saveGpa() {
+    const semesterInput = document.getElementById("semester");
+    const sgpaInput = document.getElementById("sgpa");
+    const cgpaInput = document.getElementById("cgpa");
+
+    if (!semesterInput.value || !sgpaInput.value || !cgpaInput.value) {
         alert("Fill all fields");
         return;
     }
 
-    await fetch("/api/gpa",{
+    const semester = Number(semesterInput.value);
+    const sgpa = Number(sgpaInput.value);
+    const cgpa = Number(cgpaInput.value);
 
-        method:"POST",
+    if (!Number.isInteger(semester) || semester < 1 || semester > 8 ||
+        !Number.isFinite(sgpa) || sgpa < 0 || sgpa > 10 ||
+        !Number.isFinite(cgpa) || cgpa < 0 || cgpa > 10) {
+        alert("Enter semester 1-8 and SGPA/CGPA between 0 and 10.");
+        return;
+    }
 
-        headers:{
-            "Content-Type":"application/json"
-        },
+    try {
+        const response = await fetch("/api/gpa", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ semester, sgpa, cgpa })
+        });
 
-        body:JSON.stringify({
-            semester:semester,
-            sgpa:sgpa,
-            cgpa:cgpa
-        })
+        if (!response.ok) {
+            throw new Error("Save failed: " + response.status);
+        }
 
-    });
+        semesterInput.value = "";
+        sgpaInput.value = "";
+        cgpaInput.value = "";
 
-    document.getElementById("semester").value="";
-    document.getElementById("sgpa").value="";
-    document.getElementById("cgpa").value="";
+        await loadGpa();
+        alert("GPA saved successfully!");
 
-    loadGpa();
-
+    } catch (error) {
+        console.error(error);
+        alert("Could not save GPA. Check the Spring Boot console.");
+    }
 }
 
+document.addEventListener("DOMContentLoaded", loadGpa);
 </script>
 
 </body>
