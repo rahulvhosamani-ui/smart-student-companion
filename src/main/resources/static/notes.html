@@ -847,62 +847,6 @@ function editNote(note) {
     elements.title.focus();
 }
 
-elements.form.addEventListener("submit", async event => {
-    event.preventDefault();
-
-    if (elements.save.disabled) return;
-
-    const title = elements.title.value.trim();
-    const content = elements.content.value.trim();
-    const subject = elements.subject.value || "General";
-    const tags = elements.tags.value.trim();
-    const id = elements.id.value.trim();
-
-    if (!title || !content) {
-        showMessage("Please enter both a title and note content.", "error");
-        return;
-    }
-
-    const payload = { title, content, subject, tags };
-    elements.save.disabled = true;
-    elements.save.textContent = id ? "Updating..." : "Saving...";
-
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 15000);
-
-    try {
-        const response = await requestJSON(
-            id ? `${API_URL}/${encodeURIComponent(id)}` : API_URL,
-            {
-                method: id ? "PUT" : "POST",
-                body: JSON.stringify(payload),
-                signal: controller.signal
-            }
-        );
-
-        showMessage(
-            id ? "Note updated successfully!" : "Note saved successfully!"
-        );
-
-        resetForm();
-        await loadNotes();
-
-    } catch (error) {
-        console.error("Save note failed:", error);
-
-        showMessage(
-            error.name === "AbortError"
-                ? "Save timed out. Check Railway logs."
-                : error.message,
-            "error"
-        );
-    } finally {
-        clearTimeout(timeout);
-        elements.save.disabled = false;
-        elements.save.textContent = originalText;
-    }
-   );
-
     const originalText = elements.save.textContent;
 
     elements.save.disabled = true;
@@ -923,7 +867,6 @@ elements.form.addEventListener("submit", async event => {
     }
 
     const payload = { title, content, subject, tags };
-
     const originalText = elements.save.textContent;
 
     elements.save.disabled = true;
@@ -944,24 +887,28 @@ elements.form.addEventListener("submit", async event => {
             }
         );
 
-        if (!savedNote) {
-            throw new Error("The server returned an empty response.");
+        if (!savedNote || savedNote.id == null) {
+            throw new Error(
+                "The server did not confirm the saved note. Check the backend response."
+            );
         }
+
+        resetForm();
+
+        // Reload and display saved notes on this same page.
+        await loadNotes();
 
         showMessage(
             id ? "Note updated successfully!" : "Note saved successfully!"
         );
-
-        resetForm();
-        await loadNotes();
 
     } catch (error) {
         console.error("Save note failed:", error);
 
         showMessage(
             error.name === "AbortError"
-                ? "Request timed out. Check Railway application logs and database connection."
-                : error.message,
+                ? "Request timed out. Check the Spring Boot logs and database connection."
+                : error.message || "Unable to save the note.",
             "error"
         );
     } finally {
@@ -971,17 +918,23 @@ elements.form.addEventListener("submit", async event => {
     }
 });
 
+// Cancel editing
 elements.cancel.addEventListener("click", resetForm);
 
+// Clear form
 elements.clear.addEventListener("click", () => {
     resetForm();
     showMessage("Form cleared.");
 });
 
+// Character counter
 elements.content.addEventListener("input", updateCharacterCount);
+
+// Search and subject filter
 elements.search.addEventListener("input", renderNotes);
 elements.filter.addEventListener("change", renderNotes);
 
+// Copy note
 async function copyNote(note) {
     const text = `${note.title || "Untitled Note"}\n\n${note.content || ""}`;
 
@@ -994,13 +947,19 @@ async function copyNote(note) {
     }
 }
 
+// Edit note
+// Your existing editNote(note) function above is retained.
+
+// Delete note
 async function deleteNote(note) {
-    if (note.id === undefined || note.id === null) {
-        showMessage("This note has no ID.", "error");
+    if (note.id == null) {
+        showMessage("This note has no ID and cannot be deleted.", "error");
         return;
     }
 
-    if (!confirm(`Delete "${note.title || "Untitled Note"}"?`)) return;
+    if (!confirm(`Delete "${note.title || "Untitled Note"}"?`)) {
+        return;
+    }
 
     try {
         await requestJSON(
@@ -1012,15 +971,16 @@ async function deleteNote(note) {
             resetForm();
         }
 
-        showMessage("Note deleted successfully!");
         await loadNotes();
+        showMessage("Note deleted successfully!");
 
     } catch (error) {
         console.error("Delete failed:", error);
-        showMessage(error.message || "Unable to delete note.", "error");
+        showMessage(error.message || "Unable to delete the note.", "error");
     }
 }
 
+// Mobile navigation
 const menuToggle = document.getElementById("menuToggle");
 const sidebar = document.getElementById("sidebar");
 const backdrop = document.getElementById("backdrop");
@@ -1043,5 +1003,6 @@ sidebar.querySelectorAll(".menu a").forEach(link => {
     link.addEventListener("click", closeMenu);
 });
 
+// Initial page load
 updateCharacterCount();
 loadNotes();
