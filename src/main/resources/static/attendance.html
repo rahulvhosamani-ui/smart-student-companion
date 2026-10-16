@@ -3,11 +3,23 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Attendance Tracker</title>
-
+<title>Smart Student Companion | Attendance Tracker</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
+:root {
+    --bg: #121214;
+    --panel: #1e1e24;
+    --panel2: #2a2a35;
+    --green: #52b788;
+    --green-dark: #40916c;
+    --text: #fff;
+    --muted: #bdbdbd;
+    --border: #393943;
+    --red: #ff4d4d;
+    --orange: #f4a261;
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -16,22 +28,33 @@
 }
 
 body {
-    background: #121214;
-    color: white;
     display: flex;
     min-height: 100vh;
+    background: var(--bg);
+    color: var(--text);
+}
+
+button, input {
+    font: inherit;
+}
+
+button {
+    cursor: pointer;
 }
 
 .sidebar {
     width: 250px;
     flex-shrink: 0;
-    background: #1e1e24;
-    padding: 20px;
+    min-height: 100vh;
+    background: var(--panel);
+    border-right: 1px solid var(--border);
+    padding: 22px 16px;
 }
 
 .logo {
     text-align: center;
-    color: #52b788;
+    color: var(--green);
+    font-size: 23px;
     margin-bottom: 30px;
 }
 
@@ -40,184 +63,433 @@ body {
 }
 
 .menu li {
-    margin: 10px 0;
+    margin-bottom: 8px;
 }
 
 .menu a {
     display: block;
+    color: var(--text);
     text-decoration: none;
-    color: white;
     padding: 12px;
     border-radius: 8px;
 }
 
-.menu a:hover {
-    background: #2a2a35;
-    color: #52b788;
+.menu a:hover,
+.menu a.active {
+    background: var(--panel2);
+    color: var(--green);
 }
 
-.content {
+.logout {
+    display: block;
+    text-align: center;
+    text-decoration: none;
+    background: var(--red);
+    color: white;
+    padding: 12px;
+    border-radius: 8px;
+    margin-top: 24px;
+}
+
+.menu-toggle {
+    display: none;
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    z-index: 1200;
+    background: var(--green);
+    color: #121214;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 21px;
+}
+
+.backdrop {
+    display: none;
+}
+
+.main {
     flex: 1;
     min-width: 0;
     padding: 30px;
 }
 
-.card {
-    background: #1e1e24;
-    padding: 25px;
-    border-radius: 12px;
-    border: 1px solid #333;
+.header {
+    margin-bottom: 24px;
 }
 
-h1 {
-    color: #52b788;
-    margin-bottom: 10px;
+.header h1 {
+    color: var(--green);
+    font-size: 30px;
+    margin-bottom: 9px;
 }
 
-.subtitle {
-    color: #bdbdbd;
-    margin-bottom: 20px;
+.header p {
+    color: var(--muted);
+    line-height: 1.6;
 }
 
 .stats {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     gap: 15px;
-    margin-bottom: 20px;
+    margin-bottom: 22px;
 }
 
-.stat-card {
-    background: #2a2a35;
-    padding: 20px;
-    border-radius: 10px;
-    text-align: center;
+.stat-card,
+.panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 22px;
 }
 
 .stat-card h3 {
-    color: #52b788;
-    margin-bottom: 10px;
+    color: var(--green);
+    font-size: 14px;
+    margin-bottom: 12px;
 }
 
 .stat-value {
-    font-size: 26px;
+    font-size: 27px;
     font-weight: bold;
+    overflow-wrap: anywhere;
+}
+
+.panel {
+    margin-bottom: 22px;
+}
+
+.panel h2 {
+    color: var(--green);
+    font-size: 21px;
+    margin-bottom: 8px;
+}
+
+.subtitle {
+    color: var(--muted);
+    font-size: 14px;
+    margin-bottom: 20px;
+    line-height: 1.6;
+}
+
+label {
+    display: block;
+    font-weight: bold;
+    font-size: 14px;
+    margin-bottom: 8px;
 }
 
 input {
+    display: block;
     width: 100%;
-    background: #2a2a35;
+    min-width: 0;
+    background: var(--panel2);
     color: white;
-    border: none;
+    border: 1px solid var(--border);
     border-radius: 8px;
     padding: 12px;
-    margin-bottom: 15px;
+    margin-bottom: 16px;
+    outline: none;
 }
 
-button {
-    background: #52b788;
-    color: #121214;
+input:focus {
+    border-color: var(--green);
+}
+
+input::placeholder {
+    color: #bdbdc8;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.form-actions,
+.filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.btn {
     border: none;
     border-radius: 8px;
-    padding: 12px 20px;
-    cursor: pointer;
+    padding: 11px 15px;
+    background: var(--green);
+    color: #121214;
     font-weight: bold;
 }
 
-button:hover {
-    background: #40916c;
+.btn:hover {
+    background: var(--green-dark);
+    color: white;
 }
 
-.attendance-list {
-    margin-top: 25px;
+.btn:disabled {
+    opacity: .6;
+    cursor: not-allowed;
+}
+
+.btn-secondary {
+    background: #454552;
+    color: white;
+}
+
+.btn-danger {
+    background: #a92735;
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #d93646;
+}
+
+.btn-warning {
+    background: var(--orange);
+    color: #121214;
+}
+
+.filters {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 190px;
+    margin-bottom: 20px;
+}
+
+.filters input {
+    margin-bottom: 0;
+}
+
+.subject-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
 }
 
 .attendance-card {
-    background: #2a2a35;
-    border-radius: 10px;
-    padding: 15px;
-    margin-bottom: 15px;
+    min-width: 0;
+    background: var(--panel2);
+    border: 1px solid var(--border);
+    border-radius: 11px;
+    padding: 18px;
 }
 
 .subject {
-    color: #52b788;
+    color: var(--green);
     font-size: 18px;
+    font-weight: bold;
+    overflow-wrap: anywhere;
+    margin-bottom: 12px;
+}
+
+.percentage {
+    font-size: 27px;
     font-weight: bold;
     margin-bottom: 10px;
 }
 
 .progress {
     height: 12px;
-    background: #444;
+    background: #454552;
     border-radius: 10px;
     overflow: hidden;
-    margin-top: 10px;
+    margin-bottom: 12px;
 }
 
 .progress-fill {
     height: 100%;
-    background: #52b788;
+    background: var(--green);
+    transition: width .3s ease;
 }
 
 .progress-fill.low {
-    background: #ff4d4d;
+    background: var(--red);
 }
 
-.percent {
-    margin-top: 10px;
+.status {
+    display: inline-block;
+    border-radius: 20px;
+    padding: 6px 10px;
+    margin-bottom: 14px;
+    font-size: 12px;
     font-weight: bold;
 }
 
-.warning {
-    color: #ff4d4d;
-    margin-top: 8px;
+.status.good {
+    background: #18392b;
+    color: #a7f3c8;
 }
 
-.good {
-    color: #52b788;
-    margin-top: 8px;
+.status.low {
+    background: #442126;
+    color: #ffc5c5;
 }
 
-.attendance-graphs {
-    margin-top: 30px;
+.card-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    border-top: 1px solid var(--border);
+    padding-top: 14px;
 }
 
-.attendance-graphs h2,
-.graph-card h3 {
-    color: #52b788;
-    margin-bottom: 18px;
+.card-actions .btn {
+    font-size: 13px;
+    padding: 9px 11px;
+}
+
+.graph-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 18px;
 }
 
 .graph-card {
-    background: #2a2a35;
-    border: 1px solid #393943;
+    background: var(--panel2);
+    border: 1px solid var(--border);
     border-radius: 12px;
     padding: 20px;
-    margin: 20px 0;
     min-width: 0;
+}
+
+.graph-card h3 {
+    color: var(--green);
+    margin-bottom: 18px;
+    font-size: 17px;
 }
 
 .chart-container {
     position: relative;
     width: 100%;
-    height: 300px;
+    height: 290px;
 }
 
 .chart-container.doughnut {
-    max-width: 380px;
+    max-width: 330px;
     margin: auto;
 }
 
-@media (max-width: 700px) {
+.message {
+    display: none;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+.message.show {
+    display: block;
+}
+
+.message.success {
+    background: #18392b;
+    color: #b7f7d4;
+}
+
+.message.error {
+    background: #442126;
+    color: #ffd0d0;
+}
+
+.empty-state {
+    grid-column: 1 / -1;
+    padding: 30px 15px;
+    text-align: center;
+    border: 1px dashed var(--border);
+    border-radius: 10px;
+    color: var(--muted);
+    line-height: 1.8;
+}
+
+@media (max-width: 950px) {
+    .sidebar {
+        width: 220px;
+    }
+
+    .main {
+        padding: 22px;
+    }
+}
+
+@media (max-width: 768px) {
     body {
-        flex-direction: column;
+        display: block;
+    }
+
+    .menu-toggle {
+        display: block;
     }
 
     .sidebar {
-        width: 100%;
+        position: fixed;
+        z-index: 1100;
+        top: 0;
+        bottom: 0;
+        left: -270px;
+        width: 250px;
+        min-height: 0;
+        overflow-y: auto;
+        transition: left .25s ease;
     }
 
-    .content {
-        padding: 15px;
+    .sidebar.open {
+        left: 0;
+    }
+
+    .backdrop.open {
+        display: block;
+        position: fixed;
+        inset: 0;
+        z-index: 1050;
+        background: rgba(0, 0, 0, .6);
+    }
+
+    .main {
+        padding: 75px 15px 20px;
+    }
+
+    .header h1 {
+        font-size: 25px;
+    }
+
+    .panel,
+    .stat-card {
+        padding: 17px;
+    }
+
+    .filters {
+        grid-template-columns: 1fr;
+    }
+
+    .subject-list {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .form-grid {
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+
+    .graph-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .stat-value {
+        font-size: 23px;
+    }
+
+    .form-actions .btn {
+        flex: 1;
+    }
+
+    .chart-container {
+        height: 250px;
     }
 }
 </style>
@@ -225,191 +497,402 @@ button:hover {
 
 <body>
 
-<div class="sidebar">
+<button class="menu-toggle" id="menuToggle"
+        type="button" aria-label="Open navigation"
+        aria-expanded="false">☰</button>
+
+<div class="backdrop" id="backdrop"></div>
+
+<aside class="sidebar" id="sidebar">
     <h2 class="logo">🎓 Smart Student</h2>
 
-    <ul class="menu">
-        <li><a href="dashboard.html">🏠 Dashboard</a></li>
-        <li><a href="notes.html">📚 Notes</a></li>
-        <li><a href="assignments.html">📝 Assignments</a></li>
-        <li><a href="attendance.html">📅 Attendance</a></li>
-        <li><a href="gpa.html">📊 GPA Tracker</a></li>
-        <li><a href="reminders.html">⏰ Reminders</a></li>
-        <li><a href="ainotes.html">🤖 AI Notes</a></li>
-        <li><a href="flashcards.html">📖 Flashcards</a></li>
-        <li><a href="chatbot.html">🤖 AI Assistant</a></li>
-    </ul>
-</div>
+    <nav aria-label="Main navigation">
+        <ul class="menu">
+            <li><a href="dashboard.html">🏠 Dashboard</a></li>
+            <li><a href="notes.html">📚 Notes</a></li>
+            <li><a href="assignments.html">📝 Assignments</a></li>
+            <li><a href="attendance.html" class="active">📅 Attendance</a></li>
+            <li><a href="gpa.html">📊 GPA Tracker</a></li>
+            <li><a href="reminders.html">⏰ Reminders</a></li>
+            <li><a href="ainotes.html">🤖 AI Notes</a></li>
+            <li><a href="flashcards.html">📖 Flashcards</a></li>
+            <li><a href="chatbot.html">🤖 AI Assistant</a></li>
+        </ul>
+    </nav>
 
-<div class="content">
-<div class="card">
+    <a href="/logout" class="logout">Logout</a>
+</aside>
 
-    <h1>📅 Attendance Tracker</h1>
-    <p class="subtitle">
-        Monitor subject-wise attendance and stay above 75%.
-    </p>
+<main class="main">
 
-    <div class="stats">
-        <div class="stat-card">
+    <header class="header">
+        <h1>📅 Attendance Tracker</h1>
+        <p>Monitor subject-wise attendance and aim to stay above 75%.</p>
+    </header>
+
+    <div id="message" class="message" role="status"
+         aria-live="polite"></div>
+
+    <section class="stats">
+        <article class="stat-card">
             <h3>Overall Attendance</h3>
-            <div id="overallAttendance" class="stat-value">0%</div>
-        </div>
+            <div id="overallAttendance" class="stat-value">--</div>
+        </article>
 
-        <div class="stat-card">
+        <article class="stat-card">
             <h3>Total Subjects</h3>
             <div id="subjectCount" class="stat-value">0</div>
-        </div>
-    </div>
+        </article>
 
-    <input type="text" id="subject"
-           placeholder="Subject Name" maxlength="100">
+        <article class="stat-card">
+            <h3>Below 75%</h3>
+            <div id="lowCount" class="stat-value">0</div>
+        </article>
 
-    <input type="number" id="percentage"
-           placeholder="Attendance Percentage"
-           min="0" max="100" step="0.1">
+        <article class="stat-card">
+            <h3>At or Above 75%</h3>
+            <div id="goodCount" class="stat-value">0</div>
+        </article>
+    </section>
 
-    <button type="button" onclick="saveAttendance()">
-        Save Attendance
-    </button>
+    <section class="panel" id="editorPanel">
+        <h2 id="formHeading">✍️ Add Attendance</h2>
+        <p class="subtitle">
+            Enter a subject and its current attendance percentage.
+        </p>
 
-    <!-- Saved attendance records -->
-    <div id="attendanceList" class="attendance-list"></div>
+        <form id="attendanceForm">
+            <input type="hidden" id="attendanceId">
 
-    <!-- Graphs stay separate from the list -->
-    <section class="attendance-graphs">
-        <h2>📊 Attendance Analytics</h2>
+            <div class="form-grid">
+                <div>
+                    <label for="subject">Subject Name *</label>
+                    <input id="subject" type="text" maxlength="100"
+                           placeholder="Example: DBMS" required>
+                </div>
 
-        <div class="graph-card">
-            <h3>Subject-wise Attendance</h3>
-            <div class="chart-container">
-                <canvas id="attendanceBarChart"></canvas>
+                <div>
+                    <label for="percentage">Attendance Percentage *</label>
+                    <input id="percentage" type="number"
+                           min="0" max="100" step="0.1"
+                           placeholder="Example: 82.5" required>
+                </div>
             </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn" id="saveButton">
+                    💾 Save Attendance
+                </button>
+
+                <button type="button" class="btn btn-secondary"
+                        id="cancelButton" hidden>
+                    Cancel Edit
+                </button>
+
+                <button type="button" class="btn btn-secondary"
+                        id="clearButton">
+                    Clear Form
+                </button>
+            </div>
+        </form>
+    </section>
+
+    <section class="panel">
+        <h2>📚 Subject Attendance</h2>
+        <p class="subtitle">
+            Search subjects and check your attendance status.
+        </p>
+
+        <div class="filters">
+            <input id="searchInput" type="search"
+                   placeholder="🔍 Search subjects..."
+                   aria-label="Search subjects">
+
+            <select id="filterStatus" aria-label="Filter attendance">
+                <option value="">All Attendance</option>
+                <option value="low">Below 75%</option>
+                <option value="good">75% and above</option>
+            </select>
         </div>
 
-        <div class="graph-card">
-            <h3>Overall Attendance Overview</h3>
-            <div class="chart-container doughnut">
-                <canvas id="attendanceDoughnutChart"></canvas>
-            </div>
+        <div id="attendanceList" class="subject-list">
+            <div class="empty-state">Loading attendance...</div>
         </div>
     </section>
 
-</div>
-</div>
+    <section class="panel">
+        <h2>📊 Attendance Analytics</h2>
+        <p class="subtitle">
+            Compare attendance across subjects and view your overall average.
+        </p>
+
+        <div class="graph-grid">
+            <article class="graph-card">
+                <h3>Subject-wise Attendance</h3>
+                <div class="chart-container">
+                    <canvas id="attendanceBarChart"></canvas>
+                </div>
+            </article>
+
+            <article class="graph-card">
+                <h3>Overall Attendance Overview</h3>
+                <div class="chart-container doughnut">
+                    <canvas id="attendanceDoughnutChart"></canvas>
+                </div>
+            </article>
+        </div>
+    </section>
+
+</main>
 
 <script>
-let attendanceBarChart = null;
-let attendanceDoughnutChart = null;
+"use strict";
+
+const API_URL = "/api/attendance";
+const TARGET = 75;
+
+const el = {
+    form: document.getElementById("attendanceForm"),
+    id: document.getElementById("attendanceId"),
+    subject: document.getElementById("subject"),
+    percentage: document.getElementById("percentage"),
+    list: document.getElementById("attendanceList"),
+    search: document.getElementById("searchInput"),
+    filter: document.getElementById("filterStatus"),
+    message: document.getElementById("message"),
+    heading: document.getElementById("formHeading"),
+    save: document.getElementById("saveButton"),
+    cancel: document.getElementById("cancelButton"),
+    clear: document.getElementById("clearButton")
+};
+
+let records = [];
+let barChart = null;
+let doughnutChart = null;
+let messageTimer;
+
+function showMessage(text, type = "success") {
+    clearTimeout(messageTimer);
+
+    el.message.textContent = text;
+    el.message.className = "message show " + type;
+
+    messageTimer = setTimeout(() => {
+        el.message.className = "message";
+    }, 5000);
+}
+
+async function requestJSON(url, options = {}) {
+    const response = await fetch(url, {
+        credentials: "same-origin",
+        ...options,
+        headers: {
+            "Accept": "application/json",
+            ...(options.body ? {
+                "Content-Type": "application/json"
+            } : {}),
+            ...options.headers
+        }
+    });
+
+    if (!response.ok) {
+        let details = "";
+
+        try {
+            details = await response.text();
+        } catch (_) {}
+
+        throw new Error(
+            "Request failed (HTTP " + response.status + "). " +
+            (details ? details.slice(0, 200) : "")
+        );
+    }
+
+    if (response.status === 204) return null;
+
+    const text = await response.text();
+    return text ? JSON.parse(text) : null;
+}
+
+function getArray(data) {
+    if (Array.isArray(data)) return data;
+    if (data && Array.isArray(data.content)) return data.content;
+    if (data && Array.isArray(data.data)) return data.data;
+    return [];
+}
+
+function makeElement(tag, className, text) {
+    const node = document.createElement(tag);
+
+    if (className) node.className = className;
+    if (text !== undefined) node.textContent = text;
+
+    return node;
+}
+
+function validPercentage(record) {
+    if (record.percentage === null ||
+        record.percentage === undefined ||
+        record.percentage === "") {
+        return false;
+    }
+
+    const value = Number(record.percentage);
+
+    return Number.isFinite(value) && value >= 0 && value <= 100;
+}
+
+function updateStats() {
+    const total = records.length;
+
+    const average = total
+        ? records.reduce(
+            (sum, record) => sum + Number(record.percentage), 0
+          ) / total
+        : 0;
+
+    const low = records.filter(
+        record => Number(record.percentage) < TARGET
+    ).length;
+
+    document.getElementById("subjectCount").textContent = total;
+    document.getElementById("overallAttendance").textContent =
+        total ? average.toFixed(1) + "%" : "--";
+    document.getElementById("lowCount").textContent = low;
+    document.getElementById("goodCount").textContent = total - low;
+}
 
 async function loadAttendance() {
+    el.list.replaceChildren(
+        makeElement("div", "empty-state", "Loading attendance...")
+    );
+
     try {
-        const response = await fetch("/api/attendance");
+        const data = await requestJSON(API_URL);
+        records = getArray(data).filter(validPercentage);
 
-        if (!response.ok) {
-            throw new Error("Failed to load attendance: " + response.status);
-        }
-
-        const records = await response.json();
-
-        const validRecords = records.filter(record =>
-            Number.isFinite(Number(record.percentage)) &&
-            Number(record.percentage) >= 0 &&
-            Number(record.percentage) <= 100
-        );
-
-        const list = document.getElementById("attendanceList");
-        list.replaceChildren();
-
-        validRecords.forEach(record => {
-            const percentage = Number(record.percentage);
-            const card = document.createElement("div");
-            card.className = "attendance-card";
-
-            const subject = document.createElement("div");
-            subject.className = "subject";
-            subject.textContent = record.subject;
-
-            const progress = document.createElement("div");
-            progress.className = "progress";
-
-            const fill = document.createElement("div");
-            fill.className = "progress-fill" +
-                (percentage < 75 ? " low" : "");
-            fill.style.width = percentage + "%";
-            progress.appendChild(fill);
-
-            const percent = document.createElement("div");
-            percent.className = "percent";
-            percent.textContent = percentage.toFixed(1) + "%";
-
-            const status = document.createElement("div");
-            status.className = percentage < 75 ? "warning" : "good";
-            status.textContent = percentage < 75
-                ? "⚠ Attendance Below 75%"
-                : "✓ Good Attendance";
-
-            card.append(subject, progress, percent, status);
-            list.appendChild(card);
-        });
-
-        const total = validRecords.reduce(
-            (sum, record) => sum + Number(record.percentage), 0
-        );
-
-        const average = validRecords.length
-            ? total / validRecords.length
-            : 0;
-
-        document.getElementById("subjectCount").textContent =
-            validRecords.length;
-
-        document.getElementById("overallAttendance").textContent =
-            average.toFixed(1) + "%";
-
-        drawAttendanceCharts(validRecords, average);
+        updateStats();
+        renderAttendance();
+        drawAttendanceCharts();
 
     } catch (error) {
-        console.error(error);
-        alert("Unable to load attendance. Check that Spring Boot is running.");
+        console.error("Attendance loading failed:", error);
+
+        el.list.replaceChildren(
+            makeElement(
+                "div",
+                "empty-state",
+                "Unable to load attendance. Check your backend API and try again."
+            )
+        );
+
+        showMessage(error.message, "error");
     }
 }
 
-function drawAttendanceCharts(records, average) {
-    const labels = records.map(record => record.subject);
-    const percentages = records.map(
-        record => Number(record.percentage)
-    );
+function renderAttendance() {
+    const query = el.search.value.trim().toLowerCase();
+    const statusFilter = el.filter.value;
 
-    const chartOptions = {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-            y: {
-                min: 0,
-                max: 100,
-                ticks: {
-                    color: "#ffffff",
-                    callback: value => value + "%"
-                },
-                grid: { color: "#41404a" }
-            },
-            x: {
-                ticks: { color: "#ffffff" },
-                grid: { color: "#41404a" }
-            }
-        },
-        plugins: {
-            legend: {
-                labels: { color: "#ffffff" }
-            }
-        }
-    };
+    const filtered = records.filter(record => {
+        const subject = String(record.subject || "");
+        const value = Number(record.percentage);
+        const status = value < TARGET ? "low" : "good";
 
-    if (attendanceBarChart) {
-        attendanceBarChart.destroy();
+        return subject.toLowerCase().includes(query) &&
+            (!statusFilter || status === statusFilter);
+    });
+
+    el.list.replaceChildren();
+
+    if (!filtered.length) {
+        el.list.appendChild(
+            makeElement(
+                "div",
+                "empty-state",
+                records.length
+                    ? "No subjects match your search or filter."
+                    : "📅 No attendance records yet. Add your first subject above."
+            )
+        );
+
+        return;
     }
 
-    attendanceBarChart = new Chart(
+    filtered.forEach(record => {
+        const value = Number(record.percentage);
+        const low = value < TARGET;
+
+        const card = makeElement("article", "attendance-card");
+
+        const subject = makeElement(
+            "h3",
+            "subject",
+            record.subject || "Untitled Subject"
+        );
+
+        const percentage = makeElement(
+            "div",
+            "percentage",
+            value.toFixed(1) + "%"
+        );
+
+        const progress = makeElement("div", "progress");
+        progress.setAttribute("role", "progressbar");
+        progress.setAttribute("aria-label", "Attendance percentage");
+        progress.setAttribute("aria-valuemin", "0");
+        progress.setAttribute("aria-valuemax", "100");
+        progress.setAttribute("aria-valuenow", String(value));
+
+        const fill = makeElement(
+            "div",
+            "progress-fill" + (low ? " low" : "")
+        );
+
+        fill.style.width = value + "%";
+        progress.appendChild(fill);
+
+        const badge = makeElement(
+            "span",
+            "status " + (low ? "low" : "good"),
+            low ? "⚠ Below 75% target" : "✓ Target reached"
+        );
+
+        const actions = makeElement("div", "card-actions");
+
+        const edit = makeElement("button", "btn", "✏️ Edit");
+        edit.type = "button";
+        edit.addEventListener("click", () => editAttendance(record));
+
+        const remove = makeElement(
+            "button", "btn btn-danger", "🗑️ Delete"
+        );
+        remove.type = "button";
+        remove.addEventListener("click", () => deleteAttendance(record));
+
+        actions.append(edit, remove);
+        card.append(subject, percentage, progress, badge, actions);
+        el.list.appendChild(card);
+    });
+}
+
+function drawAttendanceCharts() {
+    if (typeof Chart === "undefined") {
+        showMessage("Chart.js did not load. Check your internet connection.", "error");
+        return;
+    }
+
+    const labels = records.map(record => String(record.subject || "Subject"));
+    const values = records.map(record => Number(record.percentage));
+
+    const average = values.length
+        ? values.reduce((sum, value) => sum + value, 0) / values.length
+        : 0;
+
+    if (barChart) barChart.destroy();
+    if (doughnutChart) doughnutChart.destroy();
+
+    barChart = new Chart(
         document.getElementById("attendanceBarChart"),
         {
             type: "bar",
@@ -417,96 +900,7 @@ function drawAttendanceCharts(records, average) {
                 labels,
                 datasets: [{
                     label: "Attendance %",
-                    data: percentages,
-                    backgroundColor: percentages.map(value =>
-                        value < 75 ? "#ff4d4d" : "#52b788"
+                    data: values,
+                    backgroundColor: values.map(value =>
+                        value < TARGET ? "#ff4d4d" : "#52b788"
                     ),
-                    borderRadius: 6
-                }]
-            },
-            options: chartOptions
-        }
-    );
-
-    if (attendanceDoughnutChart) {
-        attendanceDoughnutChart.destroy();
-    }
-
-    attendanceDoughnutChart = new Chart(
-        document.getElementById("attendanceDoughnutChart"),
-        {
-            type: "doughnut",
-            data: {
-                labels: ["Average Attendance", "Remaining"],
-                datasets: [{
-                    data: [average, 100 - average],
-                    backgroundColor: ["#52b788", "#41404a"],
-                    borderColor: ["#1e1e24", "#1e1e24"],
-                    borderWidth: 3
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: "bottom",
-                        labels: { color: "#ffffff" }
-                    }
-                }
-            }
-        }
-    );
-}
-
-async function saveAttendance() {
-    const subjectInput = document.getElementById("subject");
-    const percentageInput = document.getElementById("percentage");
-
-    const subject = subjectInput.value.trim();
-    const percentage = Number(percentageInput.value);
-
-    if (!subject || percentageInput.value === "") {
-        alert("Please fill all fields.");
-        return;
-    }
-
-    if (!Number.isFinite(percentage) ||
-        percentage < 0 || percentage > 100) {
-        alert("Attendance must be between 0 and 100.");
-        return;
-    }
-
-    try {
-        const response = await fetch("/api/attendance", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                subject: subject,
-                percentage: percentage
-            })
-        });
-
-        if (!response.ok) {
-            throw new Error("Save failed: " + response.status);
-        }
-
-        subjectInput.value = "";
-        percentageInput.value = "";
-
-        await loadAttendance();
-        alert("Attendance saved successfully!");
-
-    } catch (error) {
-        console.error(error);
-        alert("Could not save attendance. Check the Spring Boot console.");
-    }
-}
-
-document.addEventListener("DOMContentLoaded", loadAttendance);
-</script>
-
-</body>
-</html>
