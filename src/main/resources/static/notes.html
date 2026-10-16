@@ -1,387 +1,894 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Notes Manager</title>
+<title>Smart Student Companion | Notes Manager</title>
 
 <style>
-
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-    font-family:Arial,sans-serif;
+:root {
+    --bg: #121214;
+    --panel: #1e1e24;
+    --panel2: #2a2a35;
+    --green: #52b788;
+    --green-dark: #40916c;
+    --text: #ffffff;
+    --muted: #bdbdbd;
+    --border: #393943;
+    --red: #ff4d4d;
 }
 
-body{
-    background:#121214;
-    color:white;
-    display:flex;
-    min-height:100vh;
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
 }
 
-.sidebar{
-    width:250px;
-    background:#1e1e24;
-    padding:20px;
+body {
+    display: flex;
+    min-height: 100vh;
+    background: var(--bg);
+    color: var(--text);
 }
 
-.logo{
-    text-align:center;
-    color:#52b788;
-    margin-bottom:30px;
+button, input, textarea, select {
+    font: inherit;
 }
 
-.menu{
-    list-style:none;
+button {
+    cursor: pointer;
 }
 
-.menu li{
-    margin:10px 0;
+.sidebar {
+    width: 250px;
+    flex-shrink: 0;
+    min-height: 100vh;
+    background: var(--panel);
+    border-right: 1px solid var(--border);
+    padding: 22px 16px;
 }
 
-.menu a{
-    display:block;
-    text-decoration:none;
-    color:white;
-    padding:12px;
-    border-radius:8px;
+.logo {
+    color: var(--green);
+    text-align: center;
+    font-size: 23px;
+    margin-bottom: 30px;
 }
 
-.menu a:hover{
-    background:#2a2a35;
-    color:#52b788;
+.menu {
+    list-style: none;
 }
 
-.content{
-    flex:1;
-    padding:30px;
+.menu li {
+    margin-bottom: 8px;
 }
 
-.card{
-    background:#1e1e24;
-    border:1px solid #333;
-    border-radius:12px;
-    padding:25px;
+.menu a {
+    display: block;
+    color: var(--text);
+    text-decoration: none;
+    padding: 12px;
+    border-radius: 8px;
 }
 
-h1{
-    color:#52b788;
-    margin-bottom:10px;
+.menu a:hover,
+.menu a.active {
+    background: var(--panel2);
+    color: var(--green);
 }
 
-.subtitle{
-    color:#bdbdbd;
-    margin-bottom:20px;
+.logout {
+    display: block;
+    text-align: center;
+    text-decoration: none;
+    background: var(--red);
+    color: white;
+    padding: 12px;
+    border-radius: 8px;
+    margin-top: 24px;
 }
 
-input,textarea{
-    width:100%;
-    background:#2a2a35;
-    color:white;
-    border:none;
-    border-radius:8px;
-    padding:12px;
-    margin-bottom:15px;
+.menu-toggle {
+    display: none;
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    z-index: 1200;
+    border: none;
+    border-radius: 8px;
+    background: var(--green);
+    color: #121214;
+    padding: 10px 14px;
+    font-size: 21px;
 }
 
-textarea{
-    min-height:140px;
-    resize:vertical;
+.backdrop {
+    display: none;
 }
 
-button{
-    background:#52b788;
-    color:#121214;
-    border:none;
-    border-radius:8px;
-    padding:12px 20px;
-    cursor:pointer;
-    font-weight:bold;
+.main {
+    flex: 1;
+    min-width: 0;
+    padding: 30px;
 }
 
-button:hover{
-    background:#40916c;
+.header {
+    margin-bottom: 24px;
 }
 
-.notes-list{
-    margin-top:25px;
+.header h1 {
+    color: var(--green);
+    font-size: 30px;
+    margin-bottom: 9px;
 }
 
-.note-card{
-    background:#2a2a35;
-    border-radius:10px;
-    padding:15px;
-    margin-bottom:15px;
+.header p {
+    color: var(--muted);
+    line-height: 1.6;
 }
 
-.note-title{
-    font-size:18px;
-    font-weight:bold;
-    color:#52b788;
-    margin-bottom:10px;
+.stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 16px;
+    margin-bottom: 22px;
 }
 
-.note-content{
-    margin-bottom:15px;
-    white-space:pre-wrap;
+.stat-card,
+.panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 22px;
 }
 
-.note-actions{
-    display:flex;
-    gap:10px;
+.stat-card h3 {
+    color: var(--green);
+    font-size: 15px;
+    margin-bottom: 12px;
 }
 
-.delete-btn{
-    background:#ff4d4d;
-    color:white;
+.stat-value {
+    font-size: 28px;
+    font-weight: bold;
 }
 
-.delete-btn:hover{
-    background:#d00000;
+.panel {
+    margin-bottom: 22px;
 }
 
-.copy-btn{
-    background:#444;
-    color:white;
+.panel h2 {
+    color: var(--green);
+    font-size: 21px;
+    margin-bottom: 8px;
 }
 
-.copy-btn:hover{
-    background:#666;
+.description {
+    color: var(--muted);
+    font-size: 14px;
+    margin-bottom: 20px;
+    line-height: 1.6;
 }
 
-.stats{
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
-    gap:15px;
-    margin-bottom:20px;
+.field-label {
+    display: block;
+    font-size: 14px;
+    margin-bottom: 8px;
+    font-weight: bold;
 }
 
-.stat-card{
-    background:#2a2a35;
-    padding:15px;
-    border-radius:10px;
-    text-align:center;
+input,
+textarea,
+select {
+    display: block;
+    width: 100%;
+    color: var(--text);
+    background: var(--panel2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 16px;
+    outline: none;
 }
 
-.stat-card h3{
-    color:#52b788;
-    margin-bottom:10px;
+input:focus,
+textarea:focus,
+select:focus {
+    border-color: var(--green);
 }
 
-.stat-value{
-    font-size:24px;
-    font-weight:bold;
+input::placeholder,
+textarea::placeholder {
+    color: #bdbdc8;
 }
 
+select option {
+    background: var(--panel);
+    color: white;
+}
+
+textarea {
+    min-height: 150px;
+    resize: vertical;
+    line-height: 1.6;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.form-grid > div {
+    min-width: 0;
+}
+
+.form-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.btn {
+    padding: 11px 17px;
+    border: none;
+    border-radius: 8px;
+    background: var(--green);
+    color: #121214;
+    font-weight: bold;
+}
+
+.btn:hover {
+    background: var(--green-dark);
+    color: white;
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.btn-secondary {
+    background: #454552;
+    color: white;
+}
+
+.btn-danger {
+    background: #a92735;
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #d93646;
+}
+
+.notes-toolbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 190px;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.notes-toolbar input,
+.notes-toolbar select {
+    margin-bottom: 0;
+}
+
+.notes-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 16px;
+}
+
+.note-card {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    background: var(--panel2);
+    border: 1px solid var(--border);
+    border-radius: 11px;
+    padding: 18px;
+}
+
+.note-title {
+    color: var(--green);
+    font-size: 18px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+    margin-bottom: 9px;
+}
+
+.note-meta {
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.7;
+    margin-bottom: 14px;
+}
+
+.note-content {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    line-height: 1.6;
+    font-size: 14px;
+    margin-bottom: 18px;
+    flex: 1;
+}
+
+.note-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    border-top: 1px solid var(--border);
+    padding-top: 14px;
+}
+
+.note-actions .btn {
+    padding: 9px 12px;
+    font-size: 13px;
+}
+
+.message {
+    margin-bottom: 16px;
+    padding: 12px;
+    border-radius: 8px;
+    line-height: 1.5;
+    display: none;
+    overflow-wrap: anywhere;
+}
+
+.message.show {
+    display: block;
+}
+
+.message.success {
+    color: #b7f7d4;
+    background: #18392b;
+}
+
+.message.error {
+    color: #ffd0d0;
+    background: #442126;
+}
+
+.empty-state {
+    grid-column: 1 / -1;
+    padding: 30px 15px;
+    text-align: center;
+    border: 1px dashed var(--border);
+    border-radius: 10px;
+    color: var(--muted);
+    line-height: 1.8;
+}
+
+.small-text {
+    color: var(--muted);
+    font-size: 12px;
+    margin-top: 8px;
+}
+
+@media (max-width: 900px) {
+    .sidebar {
+        width: 220px;
+    }
+
+    .main {
+        padding: 22px;
+    }
+}
+
+@media (max-width: 768px) {
+    body {
+        display: block;
+    }
+
+    .menu-toggle {
+        display: block;
+    }
+
+    .sidebar {
+        position: fixed;
+        z-index: 1100;
+        top: 0;
+        bottom: 0;
+        left: -270px;
+        width: 250px;
+        min-height: 0;
+        overflow-y: auto;
+        transition: left 0.25s ease;
+    }
+
+    .sidebar.open {
+        left: 0;
+    }
+
+    .backdrop.open {
+        display: block;
+        position: fixed;
+        inset: 0;
+        z-index: 1050;
+        background: rgba(0, 0, 0, 0.6);
+    }
+
+    .main {
+        padding: 75px 15px 20px;
+    }
+
+    .header h1 {
+        font-size: 25px;
+    }
+
+    .panel,
+    .stat-card {
+        padding: 17px;
+    }
+
+    .notes-toolbar {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .form-grid {
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+
+    .notes-list {
+        grid-template-columns: 1fr;
+    }
+
+    .stat-value {
+        font-size: 24px;
+    }
+
+    .form-actions .btn {
+        flex: 1;
+    }
+}
 </style>
-
 </head>
 
 <body>
 
-<div class="sidebar">
+<button class="menu-toggle" id="menuToggle"
+        type="button" aria-label="Open navigation"
+        aria-expanded="false">☰</button>
 
+<div class="backdrop" id="backdrop"></div>
+
+<aside class="sidebar" id="sidebar">
     <h2 class="logo">🎓 Smart Student</h2>
 
-    <ul class="menu">
-        <li><a href="dashboard.html">🏠 Dashboard</a></li>
-        <li><a href="notes.html">📚 Notes</a></li>
-        <li><a href="assignments.html">📝 Assignments</a></li>
-        <li><a href="attendance.html">📅 Attendance</a></li>
-        <li><a href="gpa.html">📊 GPA Tracker</a></li>
-        <li><a href="reminders.html">⏰ Reminders</a></li>
-        <li><a href="ainotes.html">🤖 AI Notes</a></li>
-        <li><a href="flashcards.html">📖 Flashcards</a></li>
-        <li><a href="chatbot.html">🤖 AI Assistant</a></li>
-    </ul>
+    <nav aria-label="Main navigation">
+        <ul class="menu">
+            <li><a href="dashboard.html">🏠 Dashboard</a></li>
+            <li><a href="notes.html" class="active">📚 Notes</a></li>
+            <li><a href="assignments.html">📝 Assignments</a></li>
+            <li><a href="attendance.html">📅 Attendance</a></li>
+            <li><a href="gpa.html">📊 GPA Tracker</a></li>
+            <li><a href="reminders.html">⏰ Reminders</a></li>
+            <li><a href="ainotes.html">🤖 AI Notes</a></li>
+            <li><a href="flashcards.html">📖 Flashcards</a></li>
+            <li><a href="chatbot.html">🤖 AI Assistant</a></li>
+        </ul>
+    </nav>
 
-</div>
+    <a href="/logout" class="logout">Logout</a>
+</aside>
 
-<div class="content">
+<main class="main">
 
-<div class="card">
+    <header class="header">
+        <h1>📚 Notes Manager</h1>
+        <p>Create, organize, search, edit and manage your study notes.</p>
+    </header>
 
-    <h1>📚 Notes Manager</h1>
+    <div id="message" class="message" role="status"
+         aria-live="polite"></div>
 
-    <p class="subtitle">
-        Create, organize and manage your study notes.
-    </p>
-
-    <div class="stats">
-
-        <div class="stat-card">
+    <section class="stats">
+        <article class="stat-card">
             <h3>Total Notes</h3>
-            <div id="noteCount"
-                 class="stat-value">
-                 0
+            <div class="stat-value" id="noteCount">0</div>
+        </article>
+
+        <article class="stat-card">
+            <h3>Current Filter</h3>
+            <div class="stat-value" id="visibleCount">0</div>
+        </article>
+    </section>
+
+    <section class="panel" id="editorPanel">
+        <h2 id="formHeading">✍️ Create a Note</h2>
+        <p class="description">
+            Save important concepts, class notes, exam preparation
+            material and revision points.
+        </p>
+
+        <form id="noteForm">
+            <input type="hidden" id="noteId">
+
+            <label class="field-label" for="title">Note Title *</label>
+            <input id="title" type="text" maxlength="150"
+                   placeholder="Example: DBMS - Normalization"
+                   required>
+
+            <div class="form-grid">
+                <div>
+                    <label class="field-label" for="subject">Subject</label>
+                    <select id="subject">
+                        <option value="General">General</option>
+                        <option value="Java">Java</option>
+                        <option value="DBMS">DBMS</option>
+                        <option value="Python">Python</option>
+                        <option value="Machine Learning">Machine Learning</option>
+                        <option value="Computer Networks">Computer Networks</option>
+                        <option value="Software Engineering">Software Engineering</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="field-label" for="tags">Tags (optional)</label>
+                    <input id="tags" type="text" maxlength="200"
+                           placeholder="Exam, important, revision">
+                </div>
             </div>
+
+            <label class="field-label" for="content">Note Content *</label>
+            <textarea id="content" maxlength="30000"
+                      placeholder="Write your study notes here..."
+                      required></textarea>
+
+            <p class="small-text" id="characterCount">
+                0 / 30000 characters
+            </p>
+
+            <div class="form-actions">
+                <button class="btn" type="submit" id="saveButton">
+                    💾 Save Note
+                </button>
+
+                <button class="btn btn-secondary" type="button"
+                        id="cancelButton" hidden>
+                    Cancel Edit
+                </button>
+
+                <button class="btn btn-secondary" type="button"
+                        id="clearButton">
+                    Clear Form
+                </button>
+            </div>
+        </form>
+    </section>
+
+    <section class="panel">
+        <h2>🗂️ Your Study Notes</h2>
+        <p class="description">
+            Search your notes or filter them by subject.
+        </p>
+
+        <div class="notes-toolbar">
+            <input id="searchInput" type="search"
+                   placeholder="🔍 Search title, content or tags..."
+                   aria-label="Search notes">
+
+            <select id="filterSubject" aria-label="Filter by subject">
+                <option value="">All Subjects</option>
+                <option value="General">General</option>
+                <option value="Java">Java</option>
+                <option value="DBMS">DBMS</option>
+                <option value="Python">Python</option>
+                <option value="Machine Learning">Machine Learning</option>
+                <option value="Computer Networks">Computer Networks</option>
+                <option value="Software Engineering">Software Engineering</option>
+                <option value="Other">Other</option>
+            </select>
         </div>
 
-    </div>
+        <div id="notesList" class="notes-list">
+            <div class="empty-state">Loading your notes...</div>
+        </div>
+    </section>
 
-    <input
-        type="text"
-        id="title"
-        placeholder="Note Title">
-
-    <textarea
-        id="content"
-        placeholder="Write your notes here...">
-    </textarea>
-
-    <button onclick="saveNote()">
-        Save Note
-    </button>
-
-    <div id="notesList"
-         class="notes-list">
-    </div>
-
-</div>
-
-</div>
+</main>
 
 <script>
+"use strict";
 
-loadNotes();
+const API_URL = "/api/notes";
 
-async function loadNotes(){
+const elements = {
+    form: document.getElementById("noteForm"),
+    id: document.getElementById("noteId"),
+    title: document.getElementById("title"),
+    content: document.getElementById("content"),
+    subject: document.getElementById("subject"),
+    tags: document.getElementById("tags"),
+    list: document.getElementById("notesList"),
+    count: document.getElementById("noteCount"),
+    visible: document.getElementById("visibleCount"),
+    search: document.getElementById("searchInput"),
+    filter: document.getElementById("filterSubject"),
+    message: document.getElementById("message"),
+    save: document.getElementById("saveButton"),
+    heading: document.getElementById("formHeading"),
+    cancel: document.getElementById("cancelButton"),
+    clear: document.getElementById("clearButton"),
+    chars: document.getElementById("characterCount")
+};
 
-    try{
+let allNotes = [];
+let messageTimeout;
 
-        const response =
-            await fetch("/api/notes");
+function showMessage(text, type = "success") {
+    clearTimeout(messageTimeout);
 
-        const notes =
-            await response.json();
+    elements.message.textContent = text;
+    elements.message.className = "message show " + type;
 
-        let html = "";
-
-        notes.forEach(note => {
-
-            html += `
-
-            <div class="note-card">
-
-                <div class="note-title">
-                    ${note.title}
-                </div>
-
-                <div class="note-content">
-                    ${note.content}
-                </div>
-
-                <div class="note-actions">
-
-                    <button
-                    class="copy-btn"
-                    onclick="copyNote(\`${note.content}\`)">
-
-                    Copy
-
-                    </button>
-
-                    <button
-                    class="delete-btn"
-                    onclick="deleteNote(${note.id})">
-
-                    Delete
-
-                    </button>
-
-                </div>
-
-            </div>
-
-            `;
-
-        });
-
-        document.getElementById(
-        "notesList"
-        ).innerHTML = html;
-
-        document.getElementById(
-        "noteCount"
-        ).innerText =
-        notes.length;
-
-    }
-    catch(error){
-
-        console.log(error);
-
-    }
-
+    messageTimeout = setTimeout(() => {
+        elements.message.className = "message";
+    }, 5000);
 }
 
-async function saveNote(){
+async function requestJSON(url, options = {}) {
+    const response = await fetch(url, {
+        credentials: "same-origin",
+        ...options,
+        headers: {
+            "Accept": "application/json",
+            ...(options.body ? {
+                "Content-Type": "application/json"
+            } : {}),
+            ...options.headers
+        }
+    });
 
-    const title =
-    document.getElementById("title").value;
+    if (!response.ok) {
+        let details = "";
 
-    const content =
-    document.getElementById("content").value;
+        try {
+            details = await response.text();
+        } catch (_) {}
 
-    if(title.trim()==="" ||
-       content.trim()===""){
+        throw new Error(
+            "Request failed (" + response.status + "). " +
+            (details ? details.slice(0, 250) : "")
+        );
+    }
 
-        alert("Please enter title and notes");
+    if (response.status === 204) {
+        return null;
+    }
 
+    const text = await response.text();
+    return text ? JSON.parse(text) : null;
+}
+
+function normalizeNotes(data) {
+    if (Array.isArray(data)) return data;
+    if (data && Array.isArray(data.content)) return data.content;
+    if (data && Array.isArray(data.data)) return data.data;
+    return [];
+}
+
+function makeElement(tag, className, text) {
+    const element = document.createElement(tag);
+
+    if (className) element.className = className;
+    if (text !== undefined) element.textContent = text;
+
+    return element;
+}
+
+function noteDate(note) {
+    const value = note.updatedAt || note.createdAt ||
+                  note.date || note.createdDate;
+
+    if (!value) return "";
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) return "";
+
+    return date.toLocaleString();
+}
+
+async function loadNotes() {
+    elements.list.replaceChildren(
+        makeElement("div", "empty-state", "Loading your notes...")
+    );
+
+    try {
+        const data = await requestJSON(API_URL);
+        allNotes = normalizeNotes(data);
+
+        renderNotes();
+    } catch (error) {
+        console.error("Loading notes failed:", error);
+
+        elements.list.replaceChildren(
+            makeElement(
+                "div",
+                "empty-state",
+                "Unable to load notes. Check your backend API and try again."
+            )
+        );
+
+        elements.count.textContent = "--";
+        elements.visible.textContent = "--";
+
+        showMessage(error.message, "error");
+    }
+}
+
+function renderNotes() {
+    const query = elements.search.value.trim().toLowerCase();
+    const selectedSubject = elements.filter.value;
+
+    const filtered = allNotes.filter(note => {
+        const title = String(note.title || "");
+        const content = String(note.content || "");
+        const tags = String(note.tags || "");
+        const subject = String(note.subject || "General");
+
+        const matchesSearch = (
+            title + " " + content + " " + tags + " " + subject
+        ).toLowerCase().includes(query);
+
+        const matchesSubject =
+            !selectedSubject || subject === selectedSubject;
+
+        return matchesSearch && matchesSubject;
+    });
+
+    elements.count.textContent = allNotes.length;
+    elements.visible.textContent = filtered.length;
+    elements.list.replaceChildren();
+
+    if (filtered.length === 0) {
+        const empty = makeElement(
+            "div",
+            "empty-state",
+            allNotes.length === 0
+                ? "📚 No notes yet. Create your first study note above!"
+                : "No notes match your search or selected subject."
+        );
+
+        elements.list.appendChild(empty);
         return;
     }
 
-    await fetch("/api/notes",{
+    filtered.forEach(note => {
+        const card = makeElement("article", "note-card");
 
-        method:"POST",
+        const title = makeElement(
+            "h3",
+            "note-title",
+            note.title || "Untitled Note"
+        );
 
-        headers:{
-            "Content-Type":"application/json"
-        },
+        const metadata = makeElement("div", "note-meta");
 
-        body:JSON.stringify({
+        metadata.textContent =
+            "Subject: " + (note.subject || "General") +
+            (note.tags ? " | Tags: " + note.tags : "") +
+            (noteDate(note) ? " | Updated: " + noteDate(note) : "");
 
-            title:title,
-            content:content
+        const content = makeElement(
+            "div",
+            "note-content",
+            note.content || ""
+        );
 
-        })
+        const actions = makeElement("div", "note-actions");
 
+        const copyButton = makeElement("button", "btn btn-secondary", "📋 Copy");
+        copyButton.type = "button";
+        copyButton.addEventListener("click", () => copyNote(note));
+
+        const editButton = makeElement("button", "btn", "✏️ Edit");
+        editButton.type = "button";
+        editButton.addEventListener("click", () => editNote(note));
+
+        const deleteButton = makeElement(
+            "button",
+            "btn btn-danger",
+            "🗑️ Delete"
+        );
+        deleteButton.type = "button";
+        deleteButton.addEventListener("click", () => deleteNote(note));
+
+        actions.append(copyButton, editButton, deleteButton);
+        card.append(title, metadata, content, actions);
+        elements.list.appendChild(card);
+    });
+}
+
+function updateCharacterCount() {
+    elements.chars.textContent =
+        elements.content.value.length + " / 30000 characters";
+}
+
+function resetForm() {
+    elements.form.reset();
+    elements.id.value = "";
+    elements.heading.textContent = "✍️ Create a Note";
+    elements.save.textContent = "💾 Save Note";
+    elements.cancel.hidden = true;
+    updateCharacterCount();
+}
+
+function editNote(note) {
+    if (note.id === undefined || note.id === null) {
+        showMessage("This note has no ID and cannot be edited.", "error");
+        return;
+    }
+
+    elements.id.value = note.id;
+    elements.title.value = note.title || "";
+    elements.content.value = note.content || "";
+    elements.subject.value = note.subject || "General";
+    elements.tags.value = note.tags || "";
+
+    elements.heading.textContent = "✏️ Edit Note";
+    elements.save.textContent = "Update Note";
+    elements.cancel.hidden = false;
+
+    updateCharacterCount();
+
+    document.getElementById("editorPanel").scrollIntoView({
+        behavior: "smooth",
+        block: "start"
     });
 
-    document.getElementById("title").value="";
-    document.getElementById("content").value="";
-
-    loadNotes();
-
+    elements.title.focus();
 }
 
-async function deleteNote(id){
+elements.form.addEventListener("submit", async event => {
+    event.preventDefault();
 
-    await fetch("/api/notes/" + id,{
+    const title = elements.title.value.trim();
+    const content = elements.content.value.trim();
+    const subject = elements.subject.value;
+    const tags = elements.tags.value.trim();
+    const id = elements.id.value;
 
-        method:"DELETE"
+    if (!title || !content) {
+        showMessage("Please enter both a title and note content.", "error");
+        return;
+    }
 
-    });
+    const payload = { title, content, subject, tags };
 
-    loadNotes();
+    elements.save.disabled = true;
+    elements.save.textContent = id ? "Updating..." : "Saving...";
 
-}
+    try {
+        if (id) {
+            await requestJSON(API_URL + "/" + encodeURIComponent(id), {
+                method: "PUT",
+                body: JSON.stringify(payload)
+            });
 
-function copyNote(content){
+            showMessage("Note updated successfully.");
+        } else {
+            await requestJSON(API_URL, {
+                method: "POST",
+                body: JSON.stringify(payload)
+            });
 
-    navigator.clipboard.writeText(content);
+            showMessage("Note created successfully.");
+        }
 
-    alert("Note Copied Successfully!");
-
-}
-
-</script>
-
-</body>
-
-</html>
+        resetForm();
+        loadNotes();
+    } catch (error) {
+        console.error("Saving note failed:", error);
+        showMessage(error.message, "error");
+    } finally {
+        elements.save.disabled = false;
+        elements.save.textContent = id ? "Update Note" : "💾 Save Note";
+    }
