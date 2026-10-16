@@ -850,11 +850,13 @@ function editNote(note) {
 elements.form.addEventListener("submit", async event => {
     event.preventDefault();
 
+    if (elements.save.disabled) return;
+
     const title = elements.title.value.trim();
     const content = elements.content.value.trim();
-    const subject = elements.subject.value;
+    const subject = elements.subject.value || "General";
     const tags = elements.tags.value.trim();
-    const id = elements.id.value;
+    const id = elements.id.value.trim();
 
     if (!title || !content) {
         showMessage("Please enter both a title and note content.", "error");
@@ -862,33 +864,44 @@ elements.form.addEventListener("submit", async event => {
     }
 
     const payload = { title, content, subject, tags };
+    const originalText = elements.save.textContent;
 
     elements.save.disabled = true;
     elements.save.textContent = id ? "Updating..." : "Saving...";
 
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
+
     try {
-        if (id) {
-            await requestJSON(API_URL + "/" + encodeURIComponent(id), {
-                method: "PUT",
-                body: JSON.stringify(payload)
-            });
+        const url = id
+            ? `${API_URL}/${encodeURIComponent(id)}`
+            : API_URL;
 
-            showMessage("Note updated successfully.");
-        } else {
-            await requestJSON(API_URL, {
-                method: "POST",
-                body: JSON.stringify(payload)
-            });
+        await requestJSON(url, {
+            method: id ? "PUT" : "POST",
+            body: JSON.stringify(payload),
+            signal: controller.signal
+        });
 
-            showMessage("Note created successfully.");
-        }
+        showMessage(
+            id ? "Note updated successfully." : "Note saved successfully."
+        );
 
         resetForm();
-        loadNotes();
+        await loadNotes();
+
     } catch (error) {
         console.error("Saving note failed:", error);
-        showMessage(error.message, "error");
+
+        showMessage(
+            error.name === "AbortError"
+                ? "Save timed out after 15 seconds. Check the server."
+                : error.message,
+            "error"
+        );
     } finally {
+        clearTimeout(timeout);
         elements.save.disabled = false;
-        elements.save.textContent = id ? "Update Note" : "💾 Save Note";
+        elements.save.textContent = originalText;
     }
+});
