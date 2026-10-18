@@ -30,6 +30,7 @@ public class NoteController {
 
     @PostMapping
     public ResponseEntity<?> saveNote(@RequestBody Note note) {
+
         log.info("Save note request received");
 
         if (note.getTitle() == null ||
@@ -44,8 +45,19 @@ public class NoteController {
                     .body(Map.of("error", "Note content is required."));
         }
 
+        if (note.getTitle().trim().length() > 150) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", "Title cannot exceed 150 characters."));
+        }
+
+        if (note.getTags() != null && note.getTags().length() > 200) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", "Tags cannot exceed 200 characters."));
+        }
+
         try {
-            note.setId(null);
+            // Do not call note.setId(null).
+            // The database generates the ID for a new note.
             note.setTitle(note.getTitle().trim());
 
             if (note.getSubject() == null ||
@@ -53,12 +65,6 @@ public class NoteController {
                 note.setSubject("General");
             } else {
                 note.setSubject(note.getSubject().trim());
-            }
-
-            if (note.getTags() != null &&
-                    note.getTags().length() > 200) {
-                return ResponseEntity.badRequest()
-                        .body(Map.of("error", "Tags cannot exceed 200 characters."));
             }
 
             log.info("Saving note to database");
@@ -73,7 +79,10 @@ public class NoteController {
             log.error("Failed to save note", ex);
 
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", "Failed to save note. Check server logs."));
+                    .body(Map.of(
+                            "error",
+                            "Failed to save note. Check server logs."
+                    ));
         }
     }
 
@@ -82,42 +91,59 @@ public class NoteController {
             @PathVariable Long id,
             @RequestBody Note updatedNote) {
 
+        if (updatedNote.getTitle() == null ||
+                updatedNote.getTitle().trim().isEmpty()) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", "Title is required."));
+        }
+
+        if (updatedNote.getContent() == null ||
+                updatedNote.getContent().trim().isEmpty()) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", "Content is required."));
+        }
+
+        if (updatedNote.getTitle().trim().length() > 150) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", "Title cannot exceed 150 characters."));
+        }
+
+        if (updatedNote.getTags() != null &&
+                updatedNote.getTags().length() > 200) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", "Tags cannot exceed 200 characters."));
+        }
+
         return noteRepository.findById(id)
                 .map(note -> {
-                    if (updatedNote.getTitle() == null ||
-                            updatedNote.getTitle().trim().isEmpty()) {
-                        return ResponseEntity.badRequest()
-                                .body((Object) Map.of("error", "Title is required."));
-                    }
-
-                    if (updatedNote.getContent() == null ||
-                            updatedNote.getContent().trim().isEmpty()) {
-                        return ResponseEntity.badRequest()
-                                .body((Object) Map.of("error", "Content is required."));
-                    }
-
                     note.setTitle(updatedNote.getTitle().trim());
                     note.setContent(updatedNote.getContent());
+
                     note.setSubject(
                             updatedNote.getSubject() == null ||
                             updatedNote.getSubject().trim().isEmpty()
                                     ? "General"
                                     : updatedNote.getSubject().trim()
                     );
+
                     note.setTags(updatedNote.getTags());
 
-                    return ResponseEntity.ok(noteRepository.save(note));
+                    return ResponseEntity.ok(
+                            noteRepository.saveAndFlush(note)
+                    );
                 })
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteNote(@PathVariable Long id) {
+
         if (!noteRepository.existsById(id)) {
             return ResponseEntity.notFound().build();
         }
 
         noteRepository.deleteById(id);
+
         return ResponseEntity.noContent().build();
     }
 }

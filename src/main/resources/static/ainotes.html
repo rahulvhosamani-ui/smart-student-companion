@@ -475,7 +475,7 @@ async function generateNotes() {
     $("wordCount").textContent = "0";
 
     try {
-        const data = await requestJSON(AI_API, {
+        const data = await requestJSON(AI_API +"/generate", {
             method: "POST",
             body: JSON.stringify({
                 topic: topic,
