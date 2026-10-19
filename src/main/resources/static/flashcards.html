@@ -746,189 +746,20 @@ button:focus-visible, a:focus-visible {
 
 <div id="toast" class="toast" role="status" hidden></div>
 
+
 <script>
 "use strict";
-
-const STORAGE_KEY = "ssc_flashcards_v2";
-
-const questionInput = document.getElementById("question");
-const answerInput = document.getElementById("answer");
-const cardForm = document.getElementById("cardForm");
-const studyArea = document.getElementById("studyArea");
-const cardList = document.getElementById("cardList");
-const searchInput = document.getElementById("searchInput");
-
-let flashcards = [];
-let studyIds = [];
-let currentIndex = 0;
-let isFlipped = false;
-let editingId = null;
-let activeFilter = "all";
-let toastTimer = null;
-
-function makeId() {
-    if (window.crypto && typeof window.crypto.randomUUID === "function") {
-        return window.crypto.randomUUID();
-    }
-
-    return Date.now().toString(36) +
-        Math.random().toString(36).slice(2);
-}
-
-function saveCards() {
-    try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(flashcards));
-        return true;
-    } catch (error) {
-        console.error("Unable to save flashcards:", error);
-        showToast("Could not save. Check your browser storage.");
-        return false;
-    }
-}
-
-function loadCards() {
-    try {
-        const saved = localStorage.getItem(STORAGE_KEY);
-        if (!saved) return [];
-
-        const parsed = JSON.parse(saved);
-        if (!Array.isArray(parsed)) return [];
-
-        return parsed
-            .filter(card =>
-                card &&
-                typeof card.question === "string" &&
-                typeof card.answer === "string"
-            )
-            .map(card => ({
-                id: String(card.id || makeId()),
-                question: card.question,
-                answer: card.answer,
-                status: card.status === "known" ? "known" : "review"
-            }));
-    } catch (error) {
-        console.error("Unable to load flashcards:", error);
-        return [];
-    }
-}
-
-function showToast(message) {
-    const toast = document.getElementById("toast");
-    toast.textContent = message;
-    toast.hidden = false;
-
-    if (toastTimer) clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => {
-        toast.hidden = true;
-    }, 2600);
-}
-
-function getVisibleCards() {
-    const query = searchInput.value.trim().toLowerCase();
-
-    return flashcards.filter(card => {
-        const matchesSearch =
-            card.question.toLowerCase().includes(query) ||
-            card.answer.toLowerCase().includes(query);
-
-        const matchesFilter =
-            activeFilter === "all" ||
-            card.status === activeFilter;
-
-        return matchesSearch && matchesFilter;
-    });
-}
-
-function syncStudyIds() {
-    const visible = getVisibleCards();
-    const visibleIds = new Set(visible.map(card => card.id));
-
-    studyIds = studyIds.filter(id => visibleIds.has(id));
-
-    visible.forEach(card => {
-        if (!studyIds.includes(card.id)) {
-            studyIds.push(card.id);
-        }
-    });
-
-    if (currentIndex >= studyIds.length) {
-        currentIndex = Math.max(0, studyIds.length - 1);
-    }
-}
-
-function updateStats() {
-    document.getElementById("totalCount").textContent = flashcards.length;
-    document.getElementById("knownCount").textContent =
-        flashcards.filter(card => card.status === "known").length;
-    document.getElementById("reviewCount").textContent =
-        flashcards.filter(card => card.status === "review").length;
-}
-
-function renderStudyCard() {
-    const card = flashcards.find(item => item.id === studyIds[currentIndex]);
-
-    document.getElementById("cardPosition").textContent =
-        studyIds.length ? `${currentIndex + 1} / ${studyIds.length}` : "0 / 0";
-
-    document.getElementById("progressBar").style.width =
-        studyIds.length ? `${((currentIndex + 1) / studyIds.length) * 100}%` : "0%";
-
-    studyArea.replaceChildren();
-
-    if (!card) {
-        const empty = document.createElement("div");
-        empty.className = "empty";
-
-        const icon = document.createElement("div");
-        icon.className = "empty-icon";
-        icon.textContent = flashcards.length ? "🔎" : "📖";
-
-        const text = document.createElement("p");
-        text.textContent = flashcards.length
-            ? "No cards match this search or filter."
-            : "No flashcards yet. Add your first question above.";
-
-        empty.append(icon, text);
-        studyArea.appendChild(empty);
-        return;
-    }
-
-    const flipCard = document.createElement("div");
-    flipCard.className = "flip-card" + (isFlipped ? " flipped" : "");
-    flipCard.tabIndex = 0;
-    flipCard.setAttribute("role", "button");
-    flipCard.setAttribute("aria-label", "Flip flashcard to see the other side");
-
-    const inner = document.createElement("div");
-    inner.className = "flip-inner";
-
-    const front = document.createElement("div");
-    front.className = "flip-face front";
-
-    const frontLabel = document.createElement("div");
-    frontLabel.className = "face-label";
-    frontLabel.textContent = "Question";
-
-    const frontText = document.createElement("div");
-    frontText.className = "face-text";
-    frontText.textContent = card.question;
-
-    front.append(frontLabel, frontText);
-
-    const back = document.createElement("div");
-    back.className = "flip-face back";
-
-    const backLabel = document.createElement("div");
-    backLabel.className = "face-label";
-    backLabel.textContent = "Answer";
-
-    const backText = document.createElement("div");
-    backText.className = "face-text";
-    backText.textContent = card.answer;
-
-    back.append(backLabel, backText);
-
-    inner.append(front, back);
-    flipCard.appendChild(inner);
-    studyArea.appendChild(flipCard);
-}
+const API_URL="/api/flashcards",$=id=>document.getElementById(id);let flashcards=[],studyIds=[],currentIndex=0,editingId=null,isFlipped=false;
+async function api(url=API_URL,opts={}){const r=await fetch(url,{...opts,headers:{"Content-Type":"application/json",...(opts.headers||{})}});if(!r.ok)throw new Error("API request failed: "+r.status);if(r.status===204)return null;const t=await r.text();return t?JSON.parse(t):null}
+function arr(d){return Array.isArray(d)?d:Array.isArray(d?.data)?d.data:[]}
+function toast(t){$("toast").textContent=t;$("toast").hidden=false;setTimeout(()=>$("toast").hidden=true,2500)}
+async function load(){try{flashcards=arr(await api());studyIds=flashcards.map(x=>x.id);render()}catch(e){toast("Cannot load flashcards: "+e.message+" (requires /api/flashcards backend)")}}
+function render(){const q=$("searchInput").value.toLowerCase(),shown=flashcards.filter(x=>(x.question+" "+x.answer).toLowerCase().includes(q));$("cardList").replaceChildren();shown.forEach(x=>{const c=document.createElement("article");c.className="flashcard-item";const h=document.createElement("h3");h.textContent=x.question;const p=document.createElement("p");p.textContent=x.answer;const edit=document.createElement("button");edit.type="button";edit.textContent="Edit";edit.onclick=()=>{editingId=x.id;$("question").value=x.question;$("answer").value=x.answer;$("formTitle").textContent="Edit Flashcard";$("saveBtn").textContent="Update Card";$("cancelEditBtn").hidden=false};const del=document.createElement("button");del.type="button";del.textContent="Delete";del.onclick=async()=>{if(!confirm("Delete this flashcard?"))return;try{await api(API_URL+"/"+encodeURIComponent(x.id),{method:"DELETE"});await load();toast("Card deleted")}catch(e){toast(e.message)}};c.append(h,p,edit,del);$("cardList").append(c)});$("totalCount").textContent=flashcards.length;$("knownCount").textContent=flashcards.filter(x=>x.known===true).length;$("reviewCount").textContent=flashcards.filter(x=>x.known!==true).length;studyIds=shown.map(x=>x.id);if(currentIndex>=studyIds.length)currentIndex=0;showStudyCard()}
+function showStudyCard(){const card=flashcards.find(x=>String(x.id)===String(studyIds[currentIndex]));$("studyArea").replaceChildren();if(!card){$("cardPosition").textContent="0 / 0";$("progressBar").style.width="0%";const p=document.createElement("p");p.textContent="Add flashcards to start studying."; $("studyArea").append(p);return}$("cardPosition").textContent=(currentIndex+1)+" / "+studyIds.length;$("progressBar").style.width=((currentIndex+1)/studyIds.length*100)+"%";const box=document.createElement("button");box.type="button";box.className="study-card";box.textContent=isFlipped?card.answer:card.question;box.onclick=()=>{isFlipped=!isFlipped;showStudyCard()};$("studyArea").append(box);const prev=document.createElement("button");prev.type="button";prev.textContent="Previous";prev.onclick=()=>{currentIndex=(currentIndex-1+studyIds.length)%studyIds.length;isFlipped=false;showStudyCard()};const next=document.createElement("button");next.type="button";next.textContent="Next";next.onclick=()=>{currentIndex=(currentIndex+1)%studyIds.length;isFlipped=false;showStudyCard()};const known=document.createElement("button");known.type="button";known.textContent=card.known?"Mark for review":"Mark known";known.onclick=async()=>{try{await api(API_URL+"/"+encodeURIComponent(card.id),{method:"PUT",body:JSON.stringify({...card,known:!card.known})});await load()}catch(e){toast(e.message)}};$("studyArea").append(prev,next,known)}
+$("cardForm").onsubmit=async e=>{e.preventDefault();const payload={question:$("question").value.trim(),answer:$("answer").value.trim(),known:false};if(!payload.question||!payload.answer)return;try{await api(editingId!==null?API_URL+"/"+encodeURIComponent(editingId):API_URL,{method:editingId!==null?"PUT":"POST",body:JSON.stringify(payload)});reset();await load();toast("Flashcard saved to database")}catch(err){toast("Save failed: "+err.message)}};
+function reset(){$("cardForm").reset();editingId=null;$("formTitle").textContent="Create Flashcard";$("saveBtn").textContent="Save Card";$("cancelEditBtn").hidden=true}
+$("cancelEditBtn").onclick=reset;$("searchInput").oninput=render;$("shuffleBtn").onclick=()=>{studyIds.sort(()=>Math.random()-.5);currentIndex=0;isFlipped=false;showStudyCard()};$("exportBtn").onclick=()=>{const b=new Blob([JSON.stringify(flashcards,null,2)],{type:"application/json"}),u=URL.createObjectURL(b),a=document.createElement("a");a.href=u;a.download="flashcards.json";a.click();URL.revokeObjectURL(u)};$("importBtn").onclick=()=>$("importFile").click();$("importFile").onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const data=JSON.parse(await f.text());if(!Array.isArray(data))throw new Error("JSON must contain an array");for(const c of data){if(c.question&&c.answer)await api(API_URL,{method:"POST",body:JSON.stringify({question:String(c.question),answer:String(c.answer),known:!!c.known})})}await load();toast("Import complete")}catch(err){toast("Import failed: "+err.message)}finally{e.target.value=""}};
+const side=$("sidebar"),back=$("backdrop"),toggle=$("menuToggle");toggle.onclick=()=>{const o=side.classList.toggle("open");back.classList.toggle("open",o)};back.onclick=()=>{side.classList.remove("open");back.classList.remove("open")};load();
+</script>
+</body>
+</html>

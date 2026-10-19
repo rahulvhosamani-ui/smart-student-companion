@@ -1,11 +1,16 @@
 package com.example.demo;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
-
+import java.util.LinkedHashMap;
 import java.util.Map;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/students")
@@ -17,25 +22,48 @@ public class StudentController {
         this.studentRepository = studentRepository;
     }
 
+    /**
+     * Returns the profile of the currently authenticated student.
+     * Endpoint: GET /students/profile
+     */
     @GetMapping("/profile")
-    public Map<String, Object> getProfile(
+    public ResponseEntity<Map<String, Object>> getProfile(
             Authentication authentication) {
 
-        if (authentication == null ||
-            !authentication.isAuthenticated()) {
+        // Verify that a real user is authenticated.
+        if (authentication == null
+                || !authentication.isAuthenticated()
+                || authentication instanceof AnonymousAuthenticationToken) {
+
             throw new ResponseStatusException(
-                HttpStatus.UNAUTHORIZED, "Login required");
+                    HttpStatus.UNAUTHORIZED,
+                    "Please log in to view your profile."
+            );
+        }
+
+        // Use the authenticated email, never an email supplied by the client.
+        String email = authentication.getName();
+
+        if (email == null || email.isBlank()) {
+            throw new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED,
+                    "Authenticated student email is unavailable."
+            );
         }
 
         Student student = studentRepository
-            .findByEmail(authentication.getName())
-            .orElseThrow(() -> new ResponseStatusException(
-                HttpStatus.NOT_FOUND, "Student not found"));
+                .findByEmail(email.trim().toLowerCase(java.util.Locale.ROOT))
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Student profile not found."
+                ));
 
-        return Map.of(
-            "id", student.getId(),
-            "name", student.getName(),
-            "email", student.getEmail()
-        );
+        // Return only safe profile fields; never expose the password.
+        Map<String, Object> profile = new LinkedHashMap<>();
+        profile.put("id", student.getId());
+        profile.put("name", student.getName());
+        profile.put("email", student.getEmail());
+
+        return ResponseEntity.ok(profile);
     }
 }

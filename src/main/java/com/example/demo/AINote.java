@@ -7,27 +7,37 @@ import jakarta.validation.constraints.Size;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "ai_notes")
-public class AInote {
+@Table(
+    name = "ai_notes",
+    indexes = {
+        @Index(
+            name = "idx_ai_notes_student_updated",
+            columnList = "student_id, updated_at"
+        )
+    }
+)
+public class AINote {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @NotBlank(message = "Title is required")
-    @Size(max = 200)
+    @Size(max = 200, message = "Title cannot exceed 200 characters")
     @Column(nullable = false, length = 200)
     private String title;
 
     @NotBlank(message = "Subject is required")
-    @Size(max = 100)
+    @Size(max = 100, message = "Subject cannot exceed 100 characters")
     @Column(nullable = false, length = 100)
     private String subject;
 
+    @NotBlank(message = "Content is required")
     @Lob
     @Column(nullable = false, columnDefinition = "LONGTEXT")
     private String content;
 
+    @Size(max = 100, message = "Topic cannot exceed 100 characters")
     @Column(length = 100)
     private String topic;
 
@@ -41,7 +51,7 @@ public class AInote {
     @JoinColumn(name = "student_id", nullable = false)
     private Student student;
 
-    public AInote() {
+    public AINote() {
     }
 
     @PrePersist

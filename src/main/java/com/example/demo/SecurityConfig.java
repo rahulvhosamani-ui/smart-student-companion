@@ -22,15 +22,14 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http)
-            throws Exception {
+    public SecurityFilterChain securityFilterChain(
+            HttpSecurity http) throws Exception {
 
         http
-            .csrf(csrf -> csrf.disable())
-
+            // Keep CSRF protection enabled.
             .authorizeHttpRequests(auth -> auth
 
-                // Public pages and registration
+                // Public pages and resources
                 .requestMatchers(
                     "/",
                     "/index.html",
@@ -39,13 +38,16 @@ public class SecurityConfig {
                     "/perform_login",
                     "/manifest.json",
                     "/sw.js",
+                    "/favicon.ico",
                     "/icon-192.png",
                     "/icon-512.png",
                     "/css/**",
-                    "/js/**"
+                    "/js/**",
+                    "/images/**",
+                    "/webjars/**"
                 ).permitAll()
 
-                // Protected student pages
+                // Student pages
                 .requestMatchers(
                     "/dashboard.html",
                     "/notes.html",
@@ -58,6 +60,10 @@ public class SecurityConfig {
                     "/chatbot.html"
                 ).authenticated()
 
+                // API endpoints require authentication
+                .requestMatchers("/api/**").authenticated()
+
+                // Everything else requires authentication
                 .anyRequest().authenticated()
             )
 
@@ -73,7 +79,10 @@ public class SecurityConfig {
 
             .logout(logout -> logout
                 .logoutUrl("/logout")
-                .logoutSuccessUrl("/index.html?logout")
+                .logoutSuccessUrl("/index.html?logout=true")
+                .invalidateHttpSession(true)
+                .clearAuthentication(true)
+                .deleteCookies("JSESSIONID")
                 .permitAll()
             );
 

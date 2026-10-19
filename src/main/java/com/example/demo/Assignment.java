@@ -1,30 +1,44 @@
 package com.example.demo;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "assignment")
+@Table(
+    name = "assignment",
+    indexes = {
+        @Index(name = "idx_assignment_due_date", columnList = "due_date"),
+        @Index(name = "idx_assignment_status", columnList = "status")
+    }
+)
 public class Assignment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotBlank(message = "Assignment title is required")
+    @Size(max = 150, message = "Title cannot exceed 150 characters")
     @Column(nullable = false, length = 150)
     private String title;
 
+    @Size(max = 100, message = "Subject cannot exceed 100 characters")
     @Column(length = 100)
     private String subject = "General";
 
+    @Column(name = "due_date")
     private LocalDate dueDate;
 
     @Column(length = 20)
     private String priority = "Medium";
 
-    @Column(length = 20)
+    @Column(length = 20, nullable = false)
     private String status = "Pending";
 
+    @Column(nullable = false)
     private boolean completed = false;
 
     public Assignment() {
@@ -32,6 +46,19 @@ public class Assignment {
 
     public Assignment(String title) {
         this.title = title;
+    }
+
+    public Assignment(
+            String title,
+            String subject,
+            LocalDate dueDate,
+            String priority) {
+        this.title = title;
+        this.subject = subject;
+        this.dueDate = dueDate;
+        this.priority = priority;
+        this.status = "Pending";
+        this.completed = false;
     }
 
     @PrePersist
@@ -43,6 +70,14 @@ public class Assignment {
         } else {
             completed = false;
             status = "Pending";
+        }
+
+        if (subject == null || subject.isBlank()) {
+            subject = "General";
+        }
+
+        if (priority == null || priority.isBlank()) {
+            priority = "Medium";
         }
     }
 

@@ -847,9 +847,6 @@ function editNote(note) {
     elements.title.focus();
 }
 
-    const originalText = elements.save.textContent;
-
-    elements.save.disabled = true;
     elements.form.addEventListener("submit", async event => {
     event.preventDefault();
 
@@ -1006,3 +1003,6 @@ sidebar.querySelectorAll(".menu a").forEach(link => {
 // Initial page load
 updateCharacterCount();
 loadNotes();
+</script>
+</body>
+</html>
