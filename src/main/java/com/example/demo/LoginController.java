@@ -19,7 +19,7 @@ public class LoginController {
     }
 
     // Open the registration page
-    @GetMapping("/register")
+    @GetMapping("/login/register")
     public String register() {
         return "register";
     }

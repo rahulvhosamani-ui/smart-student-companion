@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#101814">
+
+    <title>Sign In | Smart Student Companion</title>
+
+    <meta name="description"
+          content="Sign in to Smart Student Companion to manage your studies, attendance, GPA, notes and assignments.">
+
+    <style>
+        :root {
+            --bg: #0b110e;
+            --panel: #121b16;
+            --panel-light: #18241d;
+            --green: #52b788;
+            --green-hover: #69d39d;
+            --text: #edf7f0;
+            --muted: #9aaea1;
+            --border: #2b3b31;
+            --danger: #ff7777;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: Inter, "Segoe UI", Arial, sans-serif;
+            background:
+                radial-gradient(ellipse at 10% 10%,
+                    rgba(82, 183, 136, 0.13), transparent 38%),
+                radial-gradient(ellipse at 90% 90%,
+                    rgba(82, 183, 136, 0.08), transparent 35%),
+                var(--bg);
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+        }
+
+        a {
+            color: var(--green);
+            text-decoration: none;
+        }
+
+        a:hover {
+            color: var(--green-hover);
+        }
+
+        .navbar {
+            min-height: 76px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 7%;
+            border-bottom: 1px solid rgba(255,255,255,.06);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--text);
+            font-size: 17px;
+            font-weight: 750;
+            letter-spacing: -.4px;
+        }
+
+        .brand-icon {
+            width: 43px;
+            height: 43px;
+            border-radius: 13px;
+            background: rgba(82,183,136,.13);
+            border: 1px solid rgba(82,183,136,.35);
+            display: grid;
+            place-items: center;
+            color: var(--green);
+            font-size: 23px;
+        }
+
+        .navbar-right {
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        main {
+            flex: 1;
+            display: grid;
+            place-items: center;
+            padding: 45px 20px;
+        }
+
+        .login-layout {
+            width: 100%;
+            max-width: 1000px;
+            display: grid;
+            grid-template-columns: 1fr 440px;
+            gap: 65px;
+            align-items: center;
+        }
+
+        .welcome {
+            padding: 20px 0;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 9px;
+            color: var(--green);
+            font-size: 12px;
+            font-weight: 750;
+            letter-spacing: 1.7px;
+            text-transform: uppercase;
+            margin-bottom: 22px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--green);
+            box-shadow: 0 0 12px rgba(82,183,136,.6);
+        }
+
+        .welcome h1 {
+            font-size: clamp(36px, 5vw, 54px);
+            line-height: 1.12;
+            letter-spacing: -2px;
+            margin-bottom: 22px;
+        }
+
+        .welcome h1 span {
+            color: var(--green);
+        }
+
+        .welcome > p {
+            max-width: 430px;
+            color: var(--muted);
+            font-size: 15px;
+            line-height: 1.85;
+        }
+
+        .features {
+            display: grid;
+            gap: 18px;
+            margin-top: 35px;
+        }
+
+        .feature {
+            display: flex;
+            gap: 14px;
+            align-items: center;
+            color: #d8e7dc;
+            font-size: 14px;
+        }
+
+        .feature-icon {
+            width: 39px;
+            height: 39px;
+            flex-shrink: 0;
+            display: grid;
+            place-items: center;
+            border-radius: 11px;
+            background: var(--panel-light);
+            border: 1px solid var(--border);
+            font-size: 18px;
+        }
+
+        .login-card {
+            padding: 36px;
+            background: rgba(18, 27, 22, .96);
+            border: 1px solid var(--border);
+            border-radius: 23px;
+            box-shadow: 0 25px 80px rgba(0,0,0,.3);
+        }
+
+        .card-heading {
+            margin-bottom: 28px;
+        }
+
+        .card-heading h2 {
+            font-size: 28px;
+            letter-spacing: -.8px;
+            margin-bottom: 9px;
+        }
+
+        .card-heading p {
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .message {
+            border-radius: 10px;
+            padding: 12px 14px;
+            font-size: 13px;
+            line-height: 1.5;
+            margin-bottom: 18px;
+            overflow-wrap: anywhere;
+        }
+
+        .message.error {
+            color: #ffd0d0;
+            background: rgba(255, 90, 90, .09);
+            border: 1px solid rgba(255, 90, 90, .28);
+        }
+
+        .message.success {
+            color: #c5f7d8;
+            background: rgba(82, 183, 136, .09);
+            border: 1px solid rgba(82, 183, 136, .28);
+        }
+
+        .field {
+            margin-bottom: 20px;
+        }
+
+        .field label {
+            display: block;
+            font-size: 13px;
+            font-weight: 650;
+            margin-bottom: 9px;
+        }
+
+        .input-wrap {
+            position: relative;
+        }
+
+        .input-wrap input {
+            width: 100%;
+            height: 49px;
+            border: 1px solid var(--border);
+            border-radius: 11px;
+            background: #0d1510;
+            color: var(--text);
+            font-size: 14px;
+            padding: 0 14px;
+            outline: none;
+            transition: border-color .2s, box-shadow .2s;
+        }
+
+        .input-wrap input::placeholder {
+            color: #718276;
+        }
+
+        .input-wrap input:focus {
+            border-color: var(--green);
+            box-shadow: 0 0 0 3px rgba(82,183,136,.12);
+        }
+
+        .password-input {
+            padding-right: 78px !important;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            border: none;
+            background: transparent;
+            color: var(--green);
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            padding: 8px 2px;
+        }
+
+        .form-options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin: 3px 0 23px;
+            font-size: 12px;
+        }
+
+        .remember {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--muted);
+            cursor: pointer;
+        }
+
+        .remember input {
+            accent-color: var(--green);
+            width: 15px;
+            height: 15px;
+        }
+
+        .forgot {
+            font-weight: 600;
+        }
+
+        .submit-btn {
+            width: 100%;
+            min-height: 49px;
+            border: none;
+            border-radius: 11px;
+            background: var(--green);
+            color: #092016;
+            font-size: 14px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: background .2s, transform .2s;
+        }
+
+        .submit-btn:hover {
+            background: var(--green-hover);
+            transform: translateY(-1px);
+        }
+
+        .submit-btn:disabled {
+            opacity: .7;
+            cursor: wait;
+            transform: none;
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 13px;
+            margin: 25px 0;
+            color: #788b7e;
+            font-size: 11px;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: "";
+            height: 1px;
+            flex: 1;
+            background: var(--border);
+        }
+
+        .register-text {
+            text-align: center;
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.8;
+        }
+
+        .register-text a {
+            font-weight: 750;
+        }
+
+        .security-note {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 7px;
+            margin-top: 24px;
+            color: #829688;
+            font-size: 11px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 22px 15px;
+            color: #738478;
+            font-size: 11px;
+            border-top: 1px solid rgba(255,255,255,.05);
+        }
+
+        @media (max-width: 800px) {
+            .login-layout {
+                max-width: 460px;
+                grid-template-columns: 1fr;
+                gap: 25px;
+            }
+
+            .welcome {
+                text-align: center;
+                padding: 0;
+            }
+
+            .welcome h1 {
+                font-size: 38px;
+            }
+
+            .welcome > p {
+                margin: auto;
+            }
+
+            .features {
+                display: none;
+            }
+
+            .login-card {
+                padding: 29px 24px;
+            }
+
+            .navbar {
+                padding: 14px 5%;
+            }
+
+            .navbar-right {
+                font-size: 11px;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .login-card {
+                padding: 24px 18px;
+            }
+
+            .form-options {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .brand {
+                font-size: 14px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                transition: none !important;
+                scroll-behavior: auto !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<header class="navbar">
+    <a class="brand" th:href="@{/login}" href="/login">
+        <span class="brand-icon" aria-hidden="true">✦</span>
+        <span>Smart Student Companion</span>
+    </a>
+    <span class="navbar-right">Your learning space</span>
+</header>
+
+<main>
+    <div class="login-layout">
+
+        <section class="welcome" aria-labelledby="welcome-title">
+            <div class="eyebrow">
+                <span class="status-dot"></span>
+                Learn smarter, every day
+            </div>
+
+            <h1 id="welcome-title">
+                Your goals.<br>
+                Your growth.<br>
+                <span>Your future.</span>
+            </h1>
+
+            <p>
+                One place to organize your academic life.
+                Track attendance and GPA, manage notes and assignments,
+                and stay focused on what matters.
+            </p>
+
+            <div class="features">
+                <div class="feature">
+                    <span class="feature-icon" aria-hidden="true">◈</span>
+                    <span>Monitor your GPA and academic progress</span>
+                </div>
+                <div class="feature">
+                    <span class="feature-icon" aria-hidden="true">▤</span>
+                    <span>Keep notes, tasks and reminders organized</span>
+                </div>
+                <div class="feature">
+                    <span class="feature-icon" aria-hidden="true">↗</span>
+                    <span>Build better study habits every day</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="login-card" aria-labelledby="login-title">
+            <div class="card-heading">
+                <h2 id="login-title">Welcome back</h2>
+                <p>Sign in with your registered account to continue.</p>
+            </div>
+
+            <!-- Spring Security redirects here with ?error after failed login -->
+            <div class="message error"
+                 role="alert"
+                 th:if="${param.error}">
+                Invalid username or password. Please try again.
+            </div>
+
+            <div class="message success"
+                 role="status"
+                 th:if="${param.logout}">
+                You have been signed out successfully.
+            </div>
+
+            <div class="message success"
+                 role="status"
+                 th:if="${param.registered}">
+                Registration successful. You can now sign in.
+            </div>
+
+            <form id="loginForm"
+                  th:action="@{/perform_login}"
+                  action="/perform_login"
+                  method="post">
+
+                <!-- These names must match SecurityConfig.java -->
+                <div class="field">
+                    <label for="username">Email address</label>
+                    <div class="input-wrap">
+                        <input
+                            type="email"
+                            id="username"
+                            name="username"
+                            placeholder="you@example.com"
+                            autocomplete="username"
+                            maxlength="254"
+                            required>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label for="password">Password</label>
+                    <div class="input-wrap">
+                        <input
+                            class="password-input"
+                            type="password"
+                            id="password"
+                            name="password"
+                            placeholder="Enter your password"
+                            autocomplete="current-password"
+                            required>
+                        <button
+                            class="toggle-password"
+                            type="button"
+                            id="togglePassword"
+                            aria-controls="password"
+                            aria-pressed="false">
+                            Show
+                        </button>
+                    </div>
+                </div>
+
+                <div class="form-options">
+                    <label class="remember" for="remember-me">
+                        <input
+                            type="checkbox"
+                            id="remember-me"
+                            name="remember-me"
+                            value="true">
+                        Remember me
+                    </label>
+
+                    <!-- Add a matching controller before enabling password recovery -->
+                    <a class="forgot"
+                       th:href="@{/forgot-password}"
+                       href="/forgot-password">
+                        Forgot password?
+                    </a>
+                </div>
+
+                <!-- Spring Security automatically handles CSRF when enabled -->
+                <button class="submit-btn" id="submitBtn" type="submit">
+                    Sign in to your account →
+                </button>
+            </form>
+
+            <div class="divider">NEW TO THE PLATFORM?</div>
+
+            <p class="register-text">
+                Don't have an account?
+                <a th:href="@{/register}" href="/register">Create an account</a>
+            </p>
+
+            <div class="security-note">
+                <span aria-hidden="true">▣</span>
+                Sign in securely to your student account
+            </div>
+        </section>
+    </div>
+</main>
+
+<footer>
+    © <span id="year"></span> Smart Student Companion · Built for your academic journey
+</footer>
+
+<script>
+    (() => {
+        "use strict";
+
+        const passwordInput = document.getElementById("password");
+        const toggleButton = document.getElementById("togglePassword");
+        const loginForm = document.getElementById("loginForm");
+        const submitButton = document.getElementById("submitBtn");
+
+        document.getElementById("year").textContent =
+            new Date().getFullYear();
+
+        toggleButton.addEventListener("click", () => {
+            const showing = passwordInput.type === "password";
+
+            passwordInput.type = showing ? "text" : "password";
+            toggleButton.textContent = showing ? "Hide" : "Show";
+            toggleButton.setAttribute("aria-pressed", String(showing));
+        });
+
+        loginForm.addEventListener("submit", () => {
+            if (!loginForm.checkValidity()) {
+                return;
+            }
+
+            submitButton.disabled = true;
+            submitButton.textContent = "Signing in...";
+        });
+
+        // Do not save or persist the password in browser storage.
+    })();
+</script>
+</body>
+</html>
