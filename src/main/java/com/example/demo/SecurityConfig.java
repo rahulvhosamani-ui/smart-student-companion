@@ -33,7 +33,6 @@ public class SecurityConfig {
                 .requestMatchers(
                     "/",
                     "/index.html",
-                    "/login",
                     "/register",
                     "/perform_login",
                     "/manifest.json",
