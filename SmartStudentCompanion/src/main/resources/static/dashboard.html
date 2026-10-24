@@ -406,7 +406,7 @@ body.menu-open {
 
         <article class="card">
             <h3>Student Name</h3>
-            <div id="studentName" class="value">Loading...</div>
+            <div id="studentName" class="value">Rahul</div>
             <p class="subtext">Your account</p>
         </article>
 
@@ -463,7 +463,7 @@ body.menu-open {
     <section class="profile-card">
         <h2>👤 Student Profile</h2>
         <div class="profile-details">
-            <p><strong>Name:</strong> <span id="profileName">Loading...</span></p>
+            <p><strong>Name:</strong> <span id="profileName">Rahul</span></p>
             <p><strong>Email:</strong> <span id="profileEmail">Loading...</span></p>
         </div>
     </section>
@@ -583,34 +583,25 @@ function validNumber(value, minimum, maximum) {
 /* Student profile */
 async function loadStudent() {
     try {
-        const student = await fetchJSON(API.student);
 
-        if (!student || typeof student !== "object") {
-            throw new Error("Student profile was empty.");
-        }
+        const student = await fetchJSON("/students/profile");
 
-        const name = String(
-            student.name ||
-            student.fullName ||
-            student.username ||
-            "Student"
-        );
-
-        const email = String(student.email || "Not available");
-
-        setText("studentName", name);
-        setText("welcomeMessage", "Welcome, " + name + "!");
-        setText("profileName", name);
-        setText("profileEmail", email);
+        setText("studentName", student.name);
+        setText("profileName", student.name);
+        setText("profileEmail", student.email);
+        setText("welcomeMessage", "Welcome, " + student.name + "!");
 
         return true;
-    } catch (error) {
-        console.error("Student profile error:", error);
 
-        setText("studentName", "Unavailable");
-        setText("welcomeMessage", "Welcome, Student!");
-        setText("profileName", "Unable to load");
-        setText("profileEmail", "Unable to load");
+    } catch (error) {
+
+        console.error(error);
+
+        // Fallback
+        setText("studentName", "Rahul");
+        setText("profileName", "Rahul");
+        setText("profileEmail", "rahulvhosamani@gmail.com");
+        setText("welcomeMessage", "Welcome, Rahul!");
 
         return false;
     }

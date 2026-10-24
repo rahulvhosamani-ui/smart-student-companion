@@ -22,6 +22,15 @@ public class StudentController {
         return studentRepository.findAll();
     }
 
+    @GetMapping("/profile")
+    public ResponseEntity<Student> getProfile() {
+
+    return studentRepository
+            .findByEmail("rahulvhosamani@gmail.com")
+            .map(ResponseEntity::ok)
+            .orElse(ResponseEntity.notFound().build());
+}
+
     // Get student by ID
     @GetMapping("/{id}")
     public ResponseEntity<Student> getStudentById(@PathVariable Long id) {
