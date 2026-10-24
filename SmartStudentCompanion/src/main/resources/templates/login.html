@@ -18,6 +18,16 @@
             font-family: Arial, sans-serif;
         }
 
+        :root {
+            --bg: #121214;
+            --panel: #1e1e24;
+            --surface: #2a2a35;
+            --green: #52b788;
+            --green-dark: #40916c;
+            --text: #ffffff;
+            --muted: #bdbdbd;
+        }
+
         body {
             min-height: 100vh;
             padding: 20px;
@@ -25,64 +35,69 @@
             justify-content: center;
             align-items: center;
             background: linear-gradient(135deg, #121214, #1e1e24);
-            color: white;
+            color: var(--text);
+            overflow-x: hidden;
         }
 
         .container {
-            display: flex;
-            width: 900px;
-            max-width: 100%;
-            background: #1e1e24;
+            width: 100%;
+            max-width: 1100px;
+            min-height: 650px;
+            background: var(--panel);
             border-radius: 20px;
             overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            display: flex;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, .5);
         }
 
         .left {
             flex: 1;
-            padding: 45px;
-            background: #52b788;
+            background: var(--green);
             color: #121214;
+            padding: 50px;
             display: flex;
             flex-direction: column;
             justify-content: center;
         }
 
         .left h1 {
-            font-size: 36px;
+            font-size: 38px;
             margin-bottom: 20px;
         }
 
         .left p {
             font-size: 16px;
-            line-height: 1.7;
+            line-height: 1.8;
         }
 
         .features {
-            margin-top: 25px;
             list-style: none;
+            margin-top: 25px;
         }
 
         .features li {
-            margin-bottom: 12px;
+            padding: 8px 0;
             font-weight: bold;
         }
 
         .right {
             flex: 1;
-            min-width: 0;
-            padding: 45px;
+            padding: 50px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
 
         .logo {
             text-align: center;
-            color: #52b788;
+            color: var(--green);
             margin-bottom: 10px;
+            font-size: 32px;
         }
 
         .subtitle {
             text-align: center;
-            color: #bdbdbd;
+            color: var(--muted);
             margin-bottom: 25px;
         }
 
@@ -95,15 +110,15 @@
         }
 
         .error {
-            background: #542626;
-            color: #ffb3b3;
-            border: 1px solid #ff4d4d;
+            background: #4c2424;
+            color: #ffb8b8;
+            border: 1px solid #ff7777;
         }
 
         .success {
-            background: #234b39;
+            background: #204233;
             color: #b7f7d4;
-            border: 1px solid #52b788;
+            border: 1px solid var(--green);
         }
 
         .input-group {
@@ -113,20 +128,21 @@
         .input-group label {
             display: block;
             margin-bottom: 8px;
+            font-size: 14px;
         }
 
         .input-group input {
             width: 100%;
             padding: 14px;
-            background: #2a2a35;
-            border: 1px solid #41414d;
             border-radius: 8px;
+            border: 1px solid #41414d;
+            background: var(--surface);
             color: white;
             font-size: 15px;
         }
 
         .input-group input:focus {
-            outline: 2px solid #52b788;
+            outline: 2px solid var(--green);
             border-color: transparent;
         }
 
@@ -135,18 +151,17 @@
         }
 
         .password-wrapper input {
-            padding-right: 48px;
+            padding-right: 50px;
         }
 
         .eye {
             position: absolute;
-            right: 14px;
+            right: 15px;
             top: 50%;
             transform: translateY(-50%);
             cursor: pointer;
-            color: #52b788;
-            font-size: 19px;
             user-select: none;
+            font-size: 18px;
         }
 
         #passwordStrength {
@@ -160,7 +175,7 @@
         }
 
         a {
-            color: #52b788;
+            color: var(--green);
             text-decoration: none;
         }
 
@@ -170,83 +185,130 @@
 
         .login-btn,
         .register-btn {
-            display: block;
             width: 100%;
             padding: 14px;
             border-radius: 10px;
             font-size: 16px;
             font-weight: bold;
             text-align: center;
+            transition: 0.2s;
             cursor: pointer;
-            transition: background 0.2s;
         }
 
         .login-btn {
-            background: #52b788;
-            color: #121214;
             border: none;
+            background: var(--green);
+            color: #121214;
         }
 
         .login-btn:hover {
-            background: #40916c;
-        }
-
-        .footer {
-            text-align: center;
-            margin-top: 25px;
-            font-size: 13px;
-            color: #999;
+            background: var(--green-dark);
         }
 
         .register-section {
-            margin-top: 22px;
+            margin-top: 25px;
             text-align: center;
         }
 
         .register-section p {
-            color: #bdbdbd;
-            margin-bottom: 12px;
+            color: var(--muted);
+            margin-bottom: 10px;
         }
 
         .register-btn {
-            border: 1px solid #52b788;
+            display: block;
+            border: 1px solid var(--green);
+            color: var(--green);
             background: transparent;
-            color: #52b788;
         }
 
         .register-btn:hover {
             background: #263d32;
-            text-decoration: none;
+        }
+
+        .footer {
+            margin-top: 25px;
+            text-align: center;
+            color: #999;
+            font-size: 13px;
+        }
+
+        @media (max-width: 992px) {
+
+            .left,
+            .right {
+                padding: 35px;
+            }
         }
 
         @media (max-width: 768px) {
+
             body {
-                padding: 14px;
-                align-items: flex-start;
+                padding: 12px;
             }
 
             .container {
                 flex-direction: column;
-                width: 100%;
-                max-width: 480px;
-                margin: auto;
+                max-width: 550px;
             }
 
             .left,
             .right {
+                width: 100%;
                 padding: 28px;
             }
 
+            .left {
+                text-align: center;
+            }
+
             .left h1 {
-                font-size: 29px;
+                font-size: 28px;
             }
 
             .left p {
                 font-size: 15px;
             }
 
-            .features {
-                margin-top: 18px;
+            .features li {
+                text-align: left;
+                font-size: 14px;
+            }
+        }
+
+        @media (max-width: 480px) {
+
+            body {
+                padding: 8px;
+            }
+
+            .container {
+                border-radius: 12px;
+            }
+
+            .left,
+            .right {
+                padding: 20px;
+            }
+
+            .left h1 {
+                font-size: 24px;
+            }
+
+            .logo {
+                font-size: 26px;
+            }
+
+            .input-group input {
+                padding: 12px;
+            }
+
+            .forgot {
+                text-align: center;
+            }
+
+            .features li {
+                font-size: 13px;
             }
         }
     </style>
@@ -281,7 +343,6 @@
         <h1 class="logo">Welcome Back</h1>
         <p class="subtitle">Login to continue learning</p>
 
-        <!-- Show only the message matching the URL parameter -->
         <div class="message error"
              role="alert"
              th:if="${param.error}">
@@ -300,7 +361,6 @@
             Registration successful. Please log in.
         </div>
 
-        <!-- Spring Security processes this POST request -->
         <form th:action="@{/perform_login}"
               action="/perform_login"
               method="post">
@@ -318,9 +378,11 @@
             </div>
 
             <div class="input-group">
+
                 <label for="password">Password</label>
 
                 <div class="password-wrapper">
+
                     <input
                         type="password"
                         id="password"
@@ -329,24 +391,18 @@
                         autocomplete="current-password"
                         required>
 
-                    <span
-                        class="eye"
-                        id="eye"
-                        role="button"
-                        tabindex="0"
-                        aria-label="Show password"
-                        aria-pressed="false"
-                        onclick="togglePassword()"
-                        onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();togglePassword();}">
-                        👁
-                    </span>
+                    <span class="eye"
+                          id="eye"
+                          onclick="togglePassword()">👁</span>
+
                 </div>
 
-                <div id="passwordStrength" aria-live="polite"></div>
+                <div id="passwordStrength"></div>
+
             </div>
 
             <div class="forgot">
-                <a href="/forgot-password">Forgot Password?</a>
+                <a href="/forgot-password.html">Forgot Password?</a>
             </div>
 
             <button class="login-btn" type="submit">
@@ -356,11 +412,13 @@
         </form>
 
         <div class="register-section">
+
             <p>Don't have an account?</p>
 
             <a class="register-btn" href="/register">
                 Create New Account
             </a>
+
         </div>
 
         <div class="footer">
@@ -368,31 +426,31 @@
         </div>
 
     </main>
+
 </div>
 
 <script>
     function togglePassword() {
+
         const password = document.getElementById("password");
         const eye = document.getElementById("eye");
 
-        const showing = password.type === "password";
-
-        password.type = showing ? "text" : "password";
-        eye.textContent = showing ? "🙈" : "👁";
-        eye.setAttribute("aria-pressed", String(showing));
-        eye.setAttribute(
-            "aria-label",
-            showing ? "Hide password" : "Show password"
-        );
+        if (password.type === "password") {
+            password.type = "text";
+            eye.textContent = "🙈";
+        } else {
+            password.type = "password";
+            eye.textContent = "👁";
+        }
     }
 
     function checkPasswordStrength() {
+
         const password = document.getElementById("password").value;
         const strength = document.getElementById("passwordStrength");
 
         if (!password) {
             strength.textContent = "";
-            strength.style.color = "";
         } else if (password.length < 6) {
             strength.textContent = "Weak password";
             strength.style.color = "#ff7777";
@@ -405,10 +463,8 @@
         }
     }
 
-    document.getElementById("password").addEventListener(
-        "input",
-        checkPasswordStrength
-    );
+    document.getElementById("password")
+        .addEventListener("input", checkPasswordStrength);
 </script>
 
 </body>

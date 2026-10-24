@@ -17,50 +17,51 @@ public class StudentService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    // Register a new student
+    // Register New Student
     public Student registerStudent(Student student) {
 
-        // Encrypt password before saving
+        if (studentRepository.existsByEmail(student.getEmail())) {
+            throw new RuntimeException("Email already registered");
+        }
+
         student.setPassword(
-                passwordEncoder.encode(
-                        student.getPassword()));
+                passwordEncoder.encode(student.getPassword())
+        );
 
         return studentRepository.save(student);
     }
 
-    // Find student by email
+    // Find Student By Email
     public Student findByEmail(String email) {
-
         return studentRepository.findByEmail(email)
                 .orElse(null);
     }
 
-    // Find student by ID
+    // Find Student By ID
     public Student findById(Long id) {
-
         return studentRepository.findById(id)
                 .orElse(null);
     }
 
-    // Update student details
-    public Student updateStudent(Long id,
-                                 Student updatedStudent) {
+    // Update Student
+    public Student updateStudent(
+            Long id,
+            Student updatedStudent) {
 
         return studentRepository.findById(id)
                 .map(student -> {
 
-                    student.setName(
-                            updatedStudent.getName());
-
-                    student.setEmail(
-                            updatedStudent.getEmail());
+                    student.setName(updatedStudent.getName());
+                    student.setEmail(updatedStudent.getEmail());
 
                     if (updatedStudent.getPassword() != null
-                            && !updatedStudent.getPassword().isEmpty()) {
+                            && !updatedStudent.getPassword().isBlank()) {
 
                         student.setPassword(
                                 passwordEncoder.encode(
-                                        updatedStudent.getPassword()));
+                                        updatedStudent.getPassword()
+                                )
+                        );
                     }
 
                     return studentRepository.save(student);
@@ -68,7 +69,7 @@ public class StudentService {
                 .orElse(null);
     }
 
-    // Delete student
+    // Delete Student
     public void deleteStudent(Long id) {
         studentRepository.deleteById(id);
     }

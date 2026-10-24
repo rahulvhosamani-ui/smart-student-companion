@@ -38,33 +38,35 @@ public class SecurityConfig {
             )
 
             .authorizeHttpRequests(auth -> auth
+                .requestMatchers(
+                    "/",
+                    .requestMatchers(
+                    "/",
+                    "/login",
+                    "/register",
+                    "/perform_login",
+                    "/forgot-password",
+                    "/forgot-password.html",
+                    "/manifest.json",
+                    "/sw.js",
+                    "/favicon.ico",
+                    "/icon-192.png",
+                    "/icon-512.png",
+                    "/css/**",
+                    "/js/**",
+                    "/images/**"
+            ).permitAll()
 
                 .requestMatchers(
-                        "/",
-                        "/login",
-                        "/register",
-                        "/perform_login",
-                        "/manifest.json",
-                        "/sw.js",
-                        "/favicon.ico",
-                        "/icon-192.png",
-                        "/icon-512.png",
-                        "/css/**",
-                        "/js/**",
-                        "/images/**",
-                        "/webjars/**"
-                ).permitAll()
-
-                .requestMatchers(
-                        "/dashboard.html",
-                        "/notes.html",
-                        "/assignments.html",
-                        "/attendance.html",
-                        "/gpa.html",
-                        "/reminders.html",
-                        "/ainotes.html",
-                        "/flashcards.html",
-                        "/chatbot.html"
+                    "/dashboard.html",
+                    "/notes.html",
+                    "/assignments.html",
+                    "/attendance.html",
+                    "/gpa.html",
+                    "/reminders.html",
+                    "/ainotes.html",
+                    "/flashcards.html",
+                    "/chatbot.html"
                 ).authenticated()
 
                 .requestMatchers("/students/**").authenticated()

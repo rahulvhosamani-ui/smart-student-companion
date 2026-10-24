@@ -1,6 +1,7 @@
 package com.example.demo;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,14 +23,16 @@ public class StudentController {
         return studentRepository.findAll();
     }
 
+    // Get currently logged-in student's profile
     @GetMapping("/profile")
-    public ResponseEntity<Student> getProfile() {
+    public ResponseEntity<Student> getProfile(Authentication authentication) {
 
-    return studentRepository
-            .findByEmail("rahulvhosamani@gmail.com")
-            .map(ResponseEntity::ok)
-            .orElse(ResponseEntity.notFound().build());
-}
+        String email = authentication.getName();
+
+        return studentRepository.findByEmail(email)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
 
     // Get student by ID
     @GetMapping("/{id}")
@@ -59,7 +62,9 @@ public class StudentController {
                     student.setName(updatedStudent.getName());
                     student.setEmail(updatedStudent.getEmail());
 
-                    if (updatedStudent.getPassword() != null) {
+                    if (updatedStudent.getPassword() != null &&
+                            !updatedStudent.getPassword().isBlank()) {
+
                         student.setPassword(updatedStudent.getPassword());
                     }
 
@@ -89,12 +94,11 @@ public class StudentController {
 
     // Get student by email
     @GetMapping("/profile/{email}")
-    public ResponseEntity<Student> getProfile(
+    public ResponseEntity<Student> getProfileByEmail(
             @PathVariable String email) {
 
         return studentRepository.findByEmail(email)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
-
 }

@@ -1,12 +1,6 @@
 package com.example.demo;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-
+import jakarta.persistence.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -40,10 +34,16 @@ public class Student implements UserDetails {
         this.password = password;
     }
 
+    // =============================
     // Getters and Setters
+    // =============================
 
     public Long getId() {
         return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getName() {
@@ -76,12 +76,15 @@ public class Student implements UserDetails {
         this.password = password;
     }
 
+    // =============================
     // Spring Security Methods
+    // =============================
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return Collections.singletonList(
-                new SimpleGrantedAuthority("ROLE_STUDENT"));
+                new SimpleGrantedAuthority("ROLE_STUDENT")
+        );
     }
 
     @Override
