@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Student Companion | AI Notes</title>
+
+<style>
+:root {
+    --bg:#121214;
+    --panel:#1e1e24;
+    --panel2:#2a2a35;
+    --green:#52b788;
+    --green-dark:#40916c;
+    --text:#fff;
+    --muted:#bdbdc8;
+    --border:#393943;
+    --red:#ff6464;
+}
+
+* {
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial,sans-serif;
+}
+
+body {
+    display:flex;
+    min-height:100vh;
+    background:var(--bg);
+    color:var(--text);
+}
+
+button,input,textarea,select {font:inherit}
+button {cursor:pointer}
+button:disabled {opacity:.6;cursor:not-allowed}
+
+.sidebar {
+    width:250px;
+    flex-shrink:0;
+    min-height:100vh;
+    padding:22px 16px;
+    background:var(--panel);
+    border-right:1px solid var(--border);
+}
+
+.logo {
+    text-align:center;
+    color:var(--green);
+    font-size:22px;
+    margin-bottom:28px;
+}
+
+.menu {list-style:none}
+.menu li {margin-bottom:7px}
+
+.menu a {
+    display:block;
+    padding:12px;
+    border-radius:8px;
+    color:var(--text);
+    text-decoration:none;
+}
+
+.menu a:hover,.menu a.active {
+    background:var(--panel2);
+    color:var(--green);
+}
+
+.logout {
+    display:block;
+    margin-top:24px;
+    padding:12px;
+    text-align:center;
+    text-decoration:none;
+    border-radius:8px;
+    color:white;
+    background:#e85d35;
+}
+
+.menu-toggle {
+    display:none;
+    position:fixed;
+    z-index:1200;
+    top:12px;
+    left:12px;
+    border:0;
+    border-radius:8px;
+    padding:10px 14px;
+    background:var(--green);
+    color:#121214;
+    font-size:21px;
+}
+
+.backdrop {display:none}
+
+.main {
+    flex:1;
+    min-width:0;
+    padding:30px;
+}
+
+.header {margin-bottom:24px}
+.header h1 {
+    color:var(--green);
+    font-size:30px;
+    margin-bottom:9px;
+}
+.header p,.muted {color:var(--muted);line-height:1.6}
+
+.stats {
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+    gap:14px;
+    margin-bottom:22px;
+}
+
+.stat,.panel {
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:20px;
+}
+
+.stat h3 {
+    font-size:14px;
+    color:var(--green);
+    margin-bottom:10px;
+}
+
+.stat strong {font-size:25px}
+
+.panel {margin-bottom:22px}
+.panel h2 {
+    color:var(--green);
+    font-size:21px;
+    margin-bottom:10px;
+}
+
+.description {
+    color:var(--muted);
+    font-size:14px;
+    line-height:1.6;
+    margin-bottom:18px;
+}
+
+label {
+    display:block;
+    margin-bottom:8px;
+    font-size:14px;
+    font-weight:bold;
+}
+
+textarea,input,select {
+    width:100%;
+    display:block;
+    padding:13px;
+    margin-bottom:15px;
+    color:var(--text);
+    background:var(--panel2);
+    border:1px solid var(--border);
+    border-radius:8px;
+    outline:none;
+}
+
+textarea:focus,input:focus,select:focus {
+    border-color:var(--green);
+}
+
+textarea {
+    min-height:145px;
+    resize:vertical;
+    line-height:1.65;
+}
+
+#result {
+    min-height:240px;
+    padding:18px;
+    border:1px solid var(--border);
+    border-radius:10px;
+    background:var(--panel2);
+    white-space:pre-wrap;
+    overflow-wrap:anywhere;
+    line-height:1.75;
+}
+
+.result-placeholder {color:var(--muted)}
+
+.toolbar,.actions {
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+}
+
+.toolbar {margin-bottom:15px}
+.toolbar select {width:auto;min-width:150px;margin:0}
+
+.btn {
+    border:0;
+    border-radius:8px;
+    padding:11px 16px;
+    background:var(--green);
+    color:#101914;
+    font-weight:bold;
+}
+
+.btn:hover {background:var(--green-dark);color:white}
+.btn-secondary {background:#454552;color:white}
+.btn-danger {background:#a92735;color:white}
+.btn-danger:hover {background:#d93646}
+
+.message {
+    display:none;
+    padding:12px;
+    border-radius:8px;
+    margin-bottom:16px;
+    line-height:1.5;
+    overflow-wrap:anywhere;
+}
+
+.message.show {display:block}
+.message.success {background:#18392b;color:#b7f7d4}
+.message.error {background:#442126;color:#ffd0d0}
+.message.info {background:#24313c;color:#d4e9ff}
+
+.hint {font-size:12px;color:var(--muted);margin-top:-7px;margin-bottom:14px}
+.spinner {
+    display:inline-block;
+    width:15px;
+    height:15px;
+    border:2px solid #ffffff66;
+    border-top-color:var(--green);
+    border-radius:50%;
+    animation:spin .8s linear infinite;
+    vertical-align:middle;
+    margin-right:7px;
+}
+
+@keyframes spin {to{transform:rotate(360deg)}}
+
+.footer-note {
+    color:var(--muted);
+    font-size:12px;
+    margin-top:14px;
+    line-height:1.6;
+}
+
+@media(max-width:900px) {
+    .sidebar {width:220px}
+    .main {padding:22px}
+}
+
+@media(max-width:768px) {
+    body {display:block}
+    .menu-toggle {display:block}
+
+    .sidebar {
+        position:fixed;
+        z-index:1100;
+        top:0;
+        bottom:0;
+        left:-270px;
+        width:250px;
+        min-height:0;
+        overflow-y:auto;
+        transition:left .25s ease;
+    }
+
+    .sidebar.open {left:0}
+
+    .backdrop.open {
+        display:block;
+        position:fixed;
+        inset:0;
+        z-index:1050;
+        background:#0009;
+    }
+
+    .main {padding:75px 15px 20px}
+    .header h1 {font-size:25px}
+    .panel,.stat {padding:16px}
+    #result {min-height:200px}
+}
+
+@media(max-width:480px) {
+    .actions .btn {flex:1}
+    .toolbar select {width:100%}
+    .stat strong {font-size:22px}
+}
+</style>
+</head>
+
+<body>
+
+<button class="menu-toggle" id="menuToggle"
+        type="button" aria-label="Open navigation"
+        aria-expanded="false">☰</button>
+<div class="backdrop" id="backdrop"></div>
+
+<aside class="sidebar" id="sidebar">
+    <h2 class="logo">🎓 Smart Student</h2>
+    <nav aria-label="Main navigation">
+        <ul class="menu">
+            <li><a href="dashboard.html">🏠 Dashboard</a></li>
+            <li><a href="notes.html">📚 Notes</a></li>
+            <li><a href="assignments.html">📝 Assignments</a></li>
+            <li><a href="attendance.html">📅 Attendance</a></li>
+            <li><a href="gpa.html">📊 GPA Tracker</a></li>
+            <li><a href="reminders.html">⏰ Reminders</a></li>
+            <li><a href="ainotes.html" class="active">🤖 AI Notes</a></li>
+            <li><a href="flashcards.html">📖 Flashcards</a></li>
+            <li><a href="chatbot.html">💬 AI Assistant</a></li>
+        </ul>
+    </nav>
+    <a href="/logout" class="logout" data-logout="true">Logout</a>
+</aside>
+
+<main class="main">
+    <header class="header">
+        <h1>🤖 AI Notes Generator</h1>
+        <p>Generate study notes, revise concepts, and save useful material to your Notes Manager.</p>
+    </header>
+
+    <div id="message" class="message" role="status" aria-live="polite"></div>
+
+    <section class="stats">
+        <article class="stat">
+            <h3>Topics Generated</h3>
+            <strong id="generatedCount">0</strong>
+        </article>
+        <article class="stat">
+            <h3>Current Notes Length</h3>
+            <strong id="wordCount">0</strong>
+            <p class="muted">Words</p>
+        </article>
+    </section>
+
+    <section class="panel">
+        <h2>✨ Create Study Notes</h2>
+        <p class="description">Enter a subject or concept. You can optionally specify the study level and preferred note style.</p>
+
+        <label for="topic">Topic or question *</label>
+        <textarea id="topic" maxlength="2000"
+            placeholder="Example: Java Collections Framework, DBMS normalization, TCP/IP..."
+            required></textarea>
+        <p class="hint" id="topicCount">0 / 2000 characters</p>
+
+        <div class="toolbar">
+            <select id="level" aria-label="Study level">
+                <option value="College level">College level</option>
+                <option value="Beginner">Beginner</option>
+                <option value="Exam revision">Exam revision</option>
+                <option value="Advanced">Advanced</option>
+            </select>
+
+            <select id="style" aria-label="Notes style">
+                <option value="Detailed notes">Detailed notes</option>
+                <option value="Short revision notes">Short revision notes</option>
+                <option value="Bullet points">Bullet points</option>
+                <option value="Questions and answers">Questions and answers</option>
+            </select>
+        </div>
+
+        <div class="actions">
+            <button class="btn" id="generateButton" type="button">✨ Generate Notes</button>
+            <button class="btn btn-secondary" id="clearButton" type="button">Clear</button>
+        </div>
+        <p class="footer-note">AI-generated content can contain mistakes. Verify important definitions and exam answers with your study material.</p>
+    </section>
+
+    <section class="panel">
+        <h2>📖 Generated Notes</h2>
+        <p class="description">Review your generated notes, copy them, download a text file, or save them to your Notes Manager.</p>
+
+        <div id="result" aria-live="polite"><span class="result-placeholder">Your generated notes will appear here...</span></div>
+
+        <div class="actions" style="margin-top:16px">
+            <button class="btn" id="copyButton" type="button">📋 Copy</button>
+            <button class="btn btn-secondary" id="downloadButton" type="button">⬇️ Download TXT</button>
+            <button class="btn" id="saveButton" type="button">💾 Save to Notes</button>
+        </div>
+    </section>
+</main>
+
+<script>
+"use strict";
+
+const AI_API = "/api/ainotes";
+const NOTES_API = "/api/notes";
+
+const $ = id => document.getElementById(id);
+
+let generatedNotes = "";
+let generatedTopics = 0;
+let busy = false;
+let messageTimer;
+
+function showMessage(text, type = "success") {
+    clearTimeout(messageTimer);
+    $("message").textContent = text;
+    $("message").className = "message show " + type;
+
+    messageTimer = setTimeout(() => {
+        $("message").className = "message";
+    }, 5000);
+}
+
+function csrfHeaders() {
+    const match = document.cookie.match(/(?:^|;\s*)XSRF-TOKEN=([^;]+)/);
+    if (!match) return {};
+    try { return { "X-XSRF-TOKEN": decodeURIComponent(match[1]) }; }
+    catch (_) { return { "X-XSRF-TOKEN": match[1] }; }
+}
+
+
+document.querySelectorAll('[data-logout="true"]').forEach(link => {
+    link.addEventListener("click", async event => {
+        event.preventDefault();
+        try {
+            await fetch("/logout", {
+                method: "POST",
+                credentials: "same-origin",
+                headers: csrfHeaders()
+            });
+        } finally {
+            window.location.href = "/login?logout=true";
+        }
+    });
+});
+
+async function requestJSON(url, options = {}) {
+    const response = await fetch(url, {
+        credentials: "same-origin",
+        ...options,
+        headers: {
+            ...csrfHeaders(),
+            "Accept": "application/json",
+            ...(options.body ? {"Content-Type": "application/json"} : {}),
+            ...options.headers
+        }
+    });
+
+    if (!response.ok) {
+        const details = await response.text().catch(() => "");
+        throw new Error(
+            "Request failed (" + response.status + "). " +
+            details.slice(0, 250)
+        );
+    }
+
+    if (response.status === 204) return null;
+
+    const text = await response.text();
+    if (!text) return null;
+
+    try {
+        return JSON.parse(text);
+    } catch {
+        return text;
+    }
+}
+
+function displayResult(text) {
+    generatedNotes = String(text || "").trim();
+    $("result").textContent = generatedNotes || "No notes were returned.";
+    $("wordCount").textContent = generatedNotes
+        ? generatedNotes.split(/\s+/).filter(Boolean).length
+        : 0;
+}
+
+function updateTopicCount() {
+    $("topicCount").textContent = $("topic").value.length + " / 2000 characters";
+}
+
+function setBusy(value) {
+    busy = value;
+    $("generateButton").disabled = value;
+    $("clearButton").disabled = value;
+    $("generateButton").innerHTML = value
+        ? '<span class="spinner"></span>Generating...'
+        : "✨ Generate Notes";
+}
+
+async function generateNotes() {
+    if (busy) return;
+
+    const topic = $("topic").value.trim();
+
+    if (!topic) {
+        showMessage("Please enter a topic first.", "error");
+        $("topic").focus();
+        return;
+    }
+
+    setBusy(true);
+    $("result").textContent = "Generating your study notes. Please wait...";
+    generatedNotes = "";
+    $("wordCount").textContent = "0";
+
+    try {
+        const data = await requestJSON(AI_API +"/generate", {
+            method: "POST",
+            body: JSON.stringify({
+                topic: topic,
+                level: $("level").value,
+                style: $("style").value
+            })
+        });
+
+        const output = typeof data === "string"
+            ? data
+            : data?.notes ?? data?.answer ?? data?.content ?? data?.response;
+
+        if (!output || !String(output).trim()) {
+            throw new Error("The server returned no notes. Check your AI backend response.");
+        }
+
+        displayResult(output);
+        generatedTopics++;
+        $("generatedCount").textContent = generatedTopics;
+        showMessage("Study notes generated successfully.", "success");
+    } catch (error) {
+        console.error("AI notes generation failed:", error);
+        $("result").textContent = "Unable to generate notes.\n\n" + error.message;
+        showMessage(error.message, "error");
+    } finally {
+        setBusy(false);
+    }
+}
+
+async function copyNotes() {
+    if (!generatedNotes) {
+        showMessage("Generate notes before copying.", "error");
+        return;
+    }
+
+    try {
+        await navigator.clipboard.writeText(generatedNotes);
+        showMessage("Notes copied to clipboard.", "success");
+    } catch (error) {
+        const area = document.createElement("textarea");
+        area.value = generatedNotes;
+        document.body.appendChild(area);
+        area.select();
+
+        const copied = document.execCommand("copy");
+        area.remove();
+
+        showMessage(
+            copied ? "Notes copied to clipboard." : "Copy failed. Select and copy the notes manually.",
+            copied ? "success" : "error"
+        );
+    }
+}
+
+function downloadNotes() {
+    if (!generatedNotes) {
+        showMessage("Generate notes before downloading.", "error");
+        return;
+    }
+
+    const blob = new Blob([generatedNotes], {type:"text/plain;charset=utf-8"});
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+
+    link.href = url;
+    link.download = "AI_Notes.txt";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+
+    showMessage("Notes download started.", "success");
+}
+
+async function saveNotes() {
+    if (!generatedNotes) {
+        showMessage("Generate notes before saving.", "error");
+        return;
+    }
+
+    const topic = $("topic").value.trim();
+
+    $("saveButton").disabled = true;
+    $("saveButton").textContent = "Saving...";
+
+    try {
+        await requestJSON(NOTES_API, {
+            method: "POST",
+            body: JSON.stringify({
+                title: topic.slice(0, 150),
+                content: generatedNotes,
+                subject: "General",
+                tags: "AI Generated"
+            })
+        });
+
+        showMessage("Saved to Notes Manager. Refresh notes.html to verify.", "success");
+    } catch (error) {
+        console.error("Saving AI notes failed:", error);
+        showMessage(
+            "Could not save notes. " + error.message,
+            "error"
+        );
+    } finally {
+        $("saveButton").disabled = false;
+        $("saveButton").textContent = "💾 Save to Notes";
+    }
+}
+
+function clearPage() {
+    if (busy) return;
+
+    $("topic").value = "";
+    $("level").value = "College level";
+    $("style").value = "Detailed notes";
+    generatedNotes = "";
+    $("wordCount").textContent = "0";
+    $("result").textContent = "Your generated notes will appear here...";
+    updateTopicCount();
+    showMessage("Form and generated output cleared.", "info");
+}
+
+$("generateButton").addEventListener("click", generateNotes);
+$("copyButton").addEventListener("click", copyNotes);
+$("downloadButton").addEventListener("click", downloadNotes);
+$("saveButton").addEventListener("click", saveNotes);
+$("clearButton").addEventListener("click", clearPage);
+$("topic").addEventListener("input", updateTopicCount);
+
+$("topic").addEventListener("keydown", event => {
+    if (event.ctrlKey && event.key === "Enter") {
+        generateNotes();
+    }
+});
+
+const sidebar = $("sidebar");
+const backdrop = $("backdrop");
+const menuToggle = $("menuToggle");
+
+function closeMenu() {
+    sidebar.classList.remove("open");
+    backdrop.classList.remove("open");
+    menuToggle.setAttribute("aria-expanded", "false");
+}
+
+menuToggle.addEventListener("click", () => {
+    const open = !sidebar.classList.contains("open");
+    sidebar.classList.toggle("open", open);
+    backdrop.classList.toggle("open", open);
+    menuToggle.setAttribute("aria-expanded", String(open));
+});
+
+backdrop.addEventListener("click", closeMenu);
+
+document.addEventListener("keydown", event => {
+    if (event.key === "Escape") closeMenu();
+});
+</script>
+</body>
+</html>
