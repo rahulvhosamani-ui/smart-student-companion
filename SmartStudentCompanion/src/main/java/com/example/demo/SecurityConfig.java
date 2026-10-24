@@ -15,6 +15,7 @@ import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+
     private final CustomUserDetailsService customUserDetailsService;
 
     public SecurityConfig(CustomUserDetailsService customUserDetailsService) {
@@ -23,7 +24,10 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        CookieCsrfTokenRepository csrfRepository = CookieCsrfTokenRepository.withHttpOnlyFalse();
+
+        CookieCsrfTokenRepository csrfRepository =
+                CookieCsrfTokenRepository.withHttpOnlyFalse();
+
         csrfRepository.setCookiePath("/");
         csrfRepository.setHeaderName("X-XSRF-TOKEN");
 
@@ -32,46 +36,74 @@ public class SecurityConfig {
                 .csrfTokenRepository(csrfRepository)
                 .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
             )
+
             .authorizeHttpRequests(auth -> auth
+
                 .requestMatchers(
-                    "/", "/login", "/index.html", "/register", "/perform_login",
-                    "/forgot-password.html", "/manifest.json", "/sw.js", "/favicon.ico",
-                    "/icon-192.png", "/icon-512.png", "/css/**", "/js/**",
-                    "/images/**", "/webjars/**"
+                        "/",
+                        "/login",
+                        "/register",
+                        "/perform_login",
+                        "/manifest.json",
+                        "/sw.js",
+                        "/favicon.ico",
+                        "/icon-192.png",
+                        "/icon-512.png",
+                        "/css/**",
+                        "/js/**",
+                        "/images/**",
+                        "/webjars/**"
                 ).permitAll()
+
                 .requestMatchers(
-                    "/dashboard.html", "/notes.html", "/assignments.html",
-                    "/attendance.html", "/gpa.html", "/reminders.html",
-                    "/ainotes.html", "/flashcards.html", "/chatbot.html"
+                        "/dashboard.html",
+                        "/notes.html",
+                        "/assignments.html",
+                        "/attendance.html",
+                        "/gpa.html",
+                        "/reminders.html",
+                        "/ainotes.html",
+                        "/flashcards.html",
+                        "/chatbot.html"
                 ).authenticated()
-                .requestMatchers("/api/**", "/students/**").authenticated()
+
+                .requestMatchers("/students/**").authenticated()
+                .requestMatchers("/api/**").authenticated()
+
                 .anyRequest().authenticated()
             )
+
             .formLogin(form -> form
                 .loginPage("/login")
                 .loginProcessingUrl("/perform_login")
                 .usernameParameter("username")
                 .passwordParameter("password")
                 .defaultSuccessUrl("/dashboard.html", true)
-                .failureUrl("/login?error=true")
+                .failureUrl("/login?error")
                 .permitAll()
             )
+
             .logout(logout -> logout
                 .logoutUrl("/logout")
-                .logoutSuccessUrl("/login?logout=true")
+                .logoutSuccessUrl("/login?logout")
                 .invalidateHttpSession(true)
                 .clearAuthentication(true)
-                .deleteCookies("JSESSIONID", "XSRF-TOKEN")
+                .deleteCookies("JSESSIONID")
                 .permitAll()
             );
+
         return http.build();
     }
 
     @Bean
     public AuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+
+        DaoAuthenticationProvider provider =
+                new DaoAuthenticationProvider();
+
         provider.setUserDetailsService(customUserDetailsService);
         provider.setPasswordEncoder(passwordEncoder());
+
         return provider;
     }
 
