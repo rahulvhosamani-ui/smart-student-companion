@@ -15,27 +15,47 @@ public class DemoApplication {
         SpringApplication.run(DemoApplication.class, args);
     }
 
-    /** Optional first account, configured only through deployment environment variables. */
     @Bean
-    CommandLineRunner initDatabase(StudentRepository repository,
-                                   PasswordEncoder passwordEncoder) {
+    CommandLineRunner initDatabase(
+            StudentRepository repository,
+            PasswordEncoder passwordEncoder) {
+
         return args -> {
-            String configuredEmail = System.getenv("INITIAL_STUDENT_EMAIL");
-            String configuredPassword = System.getenv("INITIAL_STUDENT_PASSWORD");
+
+            String configuredEmail =
+                    System.getenv("INITIAL_STUDENT_EMAIL");
+
+            String configuredPassword =
+                    System.getenv("INITIAL_STUDENT_PASSWORD");
 
             if (configuredEmail == null || configuredEmail.isBlank()
-                    || configuredPassword == null || configuredPassword.isBlank()) {
+                    || configuredPassword == null
+                    || configuredPassword.isBlank()) {
                 return;
             }
-            if (configuredPassword.length() < 8 || configuredPassword.length() > 72) {
-                throw new IllegalStateException("INITIAL_STUDENT_PASSWORD must be 8 to 72 characters.");
+
+            if (configuredPassword.length() < 8
+                    || configuredPassword.length() > 72) {
+
+                throw new IllegalStateException(
+                        "INITIAL_STUDENT_PASSWORD must be 8 to 72 characters."
+                );
             }
 
-            String email = configuredEmail.trim().toLowerCase(Locale.ROOT);
-            if (repository.findByEmail(email).isPresent()) return;
+            String email =
+                    configuredEmail.trim()
+                            .toLowerCase(Locale.ROOT);
 
-            Student student = new Student("Student", email,
-                    passwordEncoder.encode(configuredPassword));
+            if (repository.findByEmail(email).isPresent()) {
+                return;
+            }
+
+            Student student = new Student(
+                    "Student",
+                    email,
+                    passwordEncoder.encode(configuredPassword)
+            );
+
             repository.save(student);
         };
     }

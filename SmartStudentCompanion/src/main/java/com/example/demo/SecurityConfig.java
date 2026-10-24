@@ -33,65 +33,68 @@ public class SecurityConfig {
 
         http
             .csrf(csrf -> csrf
-                .csrfTokenRepository(csrfRepository)
-                .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
+                    .csrfTokenRepository(csrfRepository)
+                    .csrfTokenRequestHandler(
+                            new CsrfTokenRequestAttributeHandler()
+                    )
             )
 
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers(
-                    "/",
+
                     .requestMatchers(
-                    "/",
-                    "/login",
-                    "/register",
-                    "/perform_login",
-                    "/forgot-password",
-                    "/forgot-password.html",
-                    "/manifest.json",
-                    "/sw.js",
-                    "/favicon.ico",
-                    "/icon-192.png",
-                    "/icon-512.png",
-                    "/css/**",
-                    "/js/**",
-                    "/images/**"
-            ).permitAll()
+                            "/",
+                            "/login",
+                            "/register",
+                            "/perform_login",
+                            "/forgot-password",
+                            "/forgot-password.html",
+                            "/manifest.json",
+                            "/sw.js",
+                            "/favicon.ico",
+                            "/icon-192.png",
+                            "/icon-512.png",
+                            "/css/**",
+                            "/js/**",
+                            "/images/**",
+                            "/webjars/**"
+                    ).permitAll()
 
-                .requestMatchers(
-                    "/dashboard.html",
-                    "/notes.html",
-                    "/assignments.html",
-                    "/attendance.html",
-                    "/gpa.html",
-                    "/reminders.html",
-                    "/ainotes.html",
-                    "/flashcards.html",
-                    "/chatbot.html"
-                ).authenticated()
+                    .requestMatchers(
+                            "/dashboard.html",
+                            "/notes.html",
+                            "/assignments.html",
+                            "/attendance.html",
+                            "/gpa.html",
+                            "/reminders.html",
+                            "/ainotes.html",
+                            "/flashcards.html",
+                            "/chatbot.html"
+                    ).authenticated()
 
-                .requestMatchers("/students/**").authenticated()
-                .requestMatchers("/api/**").authenticated()
+                    .requestMatchers("/students/**").authenticated()
 
-                .anyRequest().authenticated()
+                    .requestMatchers("/api/**").authenticated()
+
+                    .anyRequest().authenticated()
             )
 
             .formLogin(form -> form
-                .loginPage("/login")
-                .loginProcessingUrl("/perform_login")
-                .usernameParameter("username")
-                .passwordParameter("password")
-                .defaultSuccessUrl("/dashboard.html", true)
-                .failureUrl("/login?error")
-                .permitAll()
+                    .loginPage("/login")
+                    .loginProcessingUrl("/perform_login")
+                    .usernameParameter("username")
+                    .passwordParameter("password")
+                    .defaultSuccessUrl("/dashboard.html", true)
+                    .failureUrl("/login?error")
+                    .permitAll()
             )
 
             .logout(logout -> logout
-                .logoutUrl("/logout")
-                .logoutSuccessUrl("/login?logout")
-                .invalidateHttpSession(true)
-                .clearAuthentication(true)
-                .deleteCookies("JSESSIONID")
-                .permitAll()
+                    .logoutUrl("/logout")
+                    .logoutSuccessUrl("/login?logout")
+                    .invalidateHttpSession(true)
+                    .clearAuthentication(true)
+                    .deleteCookies("JSESSIONID")
+                    .permitAll()
             );
 
         return http.build();
