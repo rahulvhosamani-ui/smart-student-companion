@@ -31,3 +31,8 @@ build/
 
 ### VS Code ###
 .vscode/
+<<<<<<< HEAD
+=======
+error-log.txt
+app.log
+>>>>>>> 4ffd299f4d60c7af75eb1c0fcb229ef854497d31
