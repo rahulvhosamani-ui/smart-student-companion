@@ -527,6 +527,8 @@ input[type="date"] {
         <li><a href="flashcards.html">📖 Flashcards</a></li>
         <li><a href="chatbot.html">🤖 AI Assistant</a></li>
     </ul>
+    <a href="/logout" class="logout" data-logout
+       style="display:block;margin:18px 10px 0;padding:12px;text-align:center;background:#ff4d4d;color:white;border-radius:8px;text-decoration:none;font-weight:700">Logout</a>
 </aside>
 
 <div class="backdrop" id="backdrop"></div>
@@ -651,18 +653,19 @@ input[type="date"] {
 <div class="toast" id="toast" role="status" hidden></div>
 
 
+<script src="/csrf.js"></script>
 <script>
 "use strict";
 const API_URL="/api/reminders",$=id=>document.getElementById(id);let reminders=[],editingId=null,statusChart=null,dateChart=null;
 async function api(url=API_URL,opts={}){const r=await fetch(url,{...opts,headers:{"Content-Type":"application/json",...(opts.headers||{})}});if(!r.ok)throw new Error("API request failed: "+r.status);if(r.status===204)return null;const t=await r.text();return t?JSON.parse(t):null}
 function msg(t,e=false){$("statusMessage").textContent=t;$("statusMessage").classList.toggle("error",e)}
 function arr(d){return Array.isArray(d)?d:Array.isArray(d?.data)?d.data:[]}
-function dateVal(x){return x.reminderDate||x.date||""}
+function dateVal(x){return x.dueDate||x.reminderDate||x.date||""}
 function done(x){return x.completed===true||String(x.status||"").toLowerCase()==="completed"}
 function state(x){if(done(x))return"completed";const d=dateVal(x),today=new Date().toISOString().slice(0,10);return d&&d<today?"overdue":d===today?"today":"upcoming"}
 function render(){const q=$("searchInput").value.toLowerCase(),today=new Date().toISOString().slice(0,10);const visible=reminders.filter(x=>(x.title||"").toLowerCase().includes(q));$("reminderList").replaceChildren();visible.forEach(x=>{const card=document.createElement("article");card.className="reminder-card "+state(x);const h=document.createElement("h3");h.textContent=x.title||"Reminder";const p=document.createElement("p");p.textContent="Date: "+(dateVal(x)||"Not set")+" • Status: "+state(x);const complete=document.createElement("button");complete.type="button";complete.textContent=done(x)?"Mark incomplete":"Mark complete";complete.onclick=async()=>{try{await api(API_URL+"/"+encodeURIComponent(x.id),{method:"PUT",body:JSON.stringify({...x,completed:!done(x),status:done(x)?"Pending":"Completed"})});await load()}catch(e){msg(e.message,true)}};const edit=document.createElement("button");edit.type="button";edit.textContent="Edit";edit.onclick=()=>{editingId=x.id;$("title").value=x.title||"";$("reminderDate").value=dateVal(x);$("formTitle").textContent="Edit Reminder";$("saveBtn").textContent="Update Reminder";$("cancelBtn").hidden=false};const del=document.createElement("button");del.type="button";del.textContent="Delete";del.onclick=async()=>{if(!confirm("Delete this reminder?"))return;try{await api(API_URL+"/"+encodeURIComponent(x.id),{method:"DELETE"});await load();msg("Reminder deleted.")}catch(e){msg(e.message,true)}};card.append(h,p,complete,edit,del);$("reminderList").append(card)});$("totalCount").textContent=reminders.length;$("todayCount").textContent=reminders.filter(x=>state(x)==="today").length;$("overdueCount").textContent=reminders.filter(x=>state(x)==="overdue").length;$("completedCount").textContent=reminders.filter(done).length;if(typeof Chart!=="undefined"){if(statusChart)statusChart.destroy();if(dateChart)dateChart.destroy();statusChart=new Chart($("statusChart"),{type:"doughnut",data:{labels:["Upcoming","Today","Overdue","Completed"],datasets:[{data:["upcoming","today","overdue","completed"].map(s=>reminders.filter(x=>state(x)===s).length),backgroundColor:["#4dabf7","#ffd166","#ff4d4d","#52b788"]}]},options:{responsive:true}});const byDate={};reminders.forEach(x=>{const d=dateVal(x)||"No date";byDate[d]=(byDate[d]||0)+1});dateChart=new Chart($("dateChart"),{type:"bar",data:{labels:Object.keys(byDate),datasets:[{label:"Reminders",data:Object.values(byDate),backgroundColor:"#52b788"}]},options:{responsive:true}})}}
 async function load(){try{reminders=arr(await api());render()}catch(e){msg("Could not load reminders. Check GET /api/reminders. "+e.message,true)}}
-$("reminderForm").onsubmit=async e=>{e.preventDefault();const payload={title:$("title").value.trim(),reminderDate:$("reminderDate").value,completed:false,status:"Pending"};if(!payload.title||!payload.reminderDate)return msg("Enter a title and date.",true);try{await api(editingId!==null?API_URL+"/"+encodeURIComponent(editingId):API_URL,{method:editingId!==null?"PUT":"POST",body:JSON.stringify(payload)});reset();await load();msg("Reminder saved to database.")}catch(err){msg("Save failed: "+err.message,true)}};
+$("reminderForm").onsubmit=async e=>{e.preventDefault();const payload={title:$("title").value.trim(),dueDate:$("reminderDate").value,completed:false};if(!payload.title||!payload.dueDate)return msg("Enter a title and date.",true);try{await api(editingId!==null?API_URL+"/"+encodeURIComponent(editingId):API_URL,{method:editingId!==null?"PUT":"POST",body:JSON.stringify(payload)});reset();await load();msg("Reminder saved to database.")}catch(err){msg("Save failed: "+err.message,true)}};
 function reset(){$("reminderForm").reset();editingId=null;$("formTitle").textContent="Add Reminder";$("saveBtn").textContent="Save Reminder";$("cancelBtn").hidden=true}
 $("cancelBtn").onclick=reset;$("refreshBtn").onclick=load;$("searchInput").oninput=render;$("exportBtn").onclick=()=>{const blob=new Blob([JSON.stringify(reminders,null,2)],{type:"application/json"}),u=URL.createObjectURL(blob),a=document.createElement("a");a.href=u;a.download="reminders.json";a.click();URL.revokeObjectURL(u)};
 const side=$("sidebar"),back=$("backdrop"),toggle=$("menuToggle");toggle.onclick=()=>{const o=side.classList.toggle("open");back.classList.toggle("open",o)};back.onclick=()=>{side.classList.remove("open");back.classList.remove("open")};load();

@@ -6,21 +6,15 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Controller
 public class LoginController {
 
-    // Redirect the root URL to the homepage
+    // Send visitors to the server-rendered login form.
     @GetMapping("/")
     public String home() {
-        return "redirect:/index.html";
+        return "redirect:/login";
     }
 
     // Open the login page
     @GetMapping("/login")
     public String login() {
         return "login";
-    }
-
-    // Open the registration page
-    @GetMapping("/login/register")
-    public String register() {
-        return "register";
     }
 }

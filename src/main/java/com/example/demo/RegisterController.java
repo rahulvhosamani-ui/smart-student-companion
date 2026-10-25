@@ -114,7 +114,7 @@ public class RegisterController {
                     "registered",
                     "Registration successful. Please log in.");
 
-            return "redirect:/index.html?registered=true";
+            return "redirect:/login?registered=true";
 
         } catch (DataIntegrityViolationException e) {
             // Handles a duplicate-email race condition.

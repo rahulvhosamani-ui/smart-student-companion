@@ -1,6 +1,7 @@
 package com.example.demo;
 
 import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonAlias;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
@@ -31,8 +32,12 @@ public class Reminder {
     @Column(nullable = false, length = 150)
     private String title;
 
+    @JsonAlias("reminderDate")
     @Column(name = "due_date")
     private LocalDate dueDate;
+
+    @Column(nullable = false)
+    private boolean completed;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -90,6 +95,14 @@ public class Reminder {
 
     public void setDueDate(LocalDate dueDate) {
         this.dueDate = dueDate;
+    }
+
+    public boolean isCompleted() {
+        return completed;
+    }
+
+    public void setCompleted(boolean completed) {
+        this.completed = completed;
     }
 
     public LocalDateTime getCreatedAt() {

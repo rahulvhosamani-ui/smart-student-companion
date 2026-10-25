@@ -2,6 +2,7 @@ package com.example.demo;
 
 import java.util.List;
 import java.util.Map;
+import java.time.YearMonth;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,6 +30,12 @@ public class AttendanceController {
     public ResponseEntity<?> saveAttendance(
             @RequestBody Attendance attendance) {
 
+        if (attendance != null
+                && (attendance.getMonth() == null
+                    || attendance.getMonth().isBlank())) {
+            attendance.setMonth(YearMonth.now().toString());
+        }
+
         String error = validate(attendance);
 
         if (error != null) {
@@ -50,6 +57,12 @@ public class AttendanceController {
     public ResponseEntity<?> updateAttendance(
             @PathVariable Long id,
             @RequestBody Attendance updated) {
+
+        if (updated != null
+                && (updated.getMonth() == null
+                    || updated.getMonth().isBlank())) {
+            updated.setMonth(YearMonth.now().toString());
+        }
 
         String error = validate(updated);
 

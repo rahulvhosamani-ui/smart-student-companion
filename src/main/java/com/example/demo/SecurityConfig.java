@@ -9,6 +9,8 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 
 @Configuration
 @EnableWebSecurity
@@ -25,16 +27,27 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(
             HttpSecurity http) throws Exception {
 
+        CookieCsrfTokenRepository csrfRepository =
+                CookieCsrfTokenRepository.withHttpOnlyFalse();
+        csrfRepository.setCookiePath("/");
+        csrfRepository.setHeaderName("X-XSRF-TOKEN");
+
         http
-            // Keep CSRF protection enabled.
+            .csrf(csrf -> csrf
+                .csrfTokenRepository(csrfRepository)
+                .csrfTokenRequestHandler(
+                    new CsrfTokenRequestAttributeHandler()
+                )
+            )
             .authorizeHttpRequests(auth -> auth
 
                 // Public pages and resources
                 .requestMatchers(
                     "/",
-                    "/index.html",
+                    "/login",
                     "/register",
                     "/perform_login",
+                    "/csrf",
                     "/manifest.json",
                     "/sw.js",
                     "/favicon.ico",
@@ -72,13 +85,13 @@ public class SecurityConfig {
                 .usernameParameter("username")
                 .passwordParameter("password")
                 .defaultSuccessUrl("/dashboard.html", true)
-                .failureUrl("/index.html?error=true")
-            .permitAll()
-)
+                .failureUrl("/login?error=true")
+                .permitAll()
+            )
 
             .logout(logout -> logout
                 .logoutUrl("/logout")
-                .logoutSuccessUrl("/index.html?logout=true")
+                .logoutSuccessUrl("/login?logout=true")
                 .invalidateHttpSession(true)
                 .clearAuthentication(true)
                 .deleteCookies("JSESSIONID")

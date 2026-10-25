@@ -50,8 +50,12 @@ public class ReminderController {
 
         reminder.setId(null);
         reminder.setTitle(reminder.getTitle().trim());
+        if (reminder.getDueDate() == null) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", "Due date is required."));
+        }
 
-        Reminder saved = reminderRepository.save(reminder);
+        Reminder saved = reminderRepository.saveAndFlush(reminder);
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(saved);
@@ -76,9 +80,11 @@ public class ReminderController {
                             updatedReminder.getTitle().trim());
                     existing.setDueDate(
                             updatedReminder.getDueDate());
+                    existing.setCompleted(
+                            updatedReminder.isCompleted());
 
                     Reminder saved =
-                            reminderRepository.save(existing);
+                            reminderRepository.saveAndFlush(existing);
 
                     return ResponseEntity.ok(saved);
                 })

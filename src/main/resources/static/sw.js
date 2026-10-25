@@ -2,7 +2,7 @@ const CACHE_NAME = "smart-student-v2";
 
 const staticFiles = [
     "/",
-    "/index.html",
+    "/login",
     "/manifest.json",
     "/icon-192.png",
     "/icon-512.png"

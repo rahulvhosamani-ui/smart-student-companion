@@ -2,7 +2,7 @@
   "name": "Smart Student Companion",
   "short_name": "SmartStudent",
   "description": "AI powered student management system",
-  "start_url": "/index.html",
+  "start_url": "/login",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",

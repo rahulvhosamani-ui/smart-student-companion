@@ -59,38 +59,29 @@ public class AIController {
                     .body("Question must not exceed 10000 characters.");
         }
 
+        final String answer;
         try {
-            // Ask Gemini to generate the answer.
-            String answer = geminiService.askGemini(question);
-
-            if (answer == null || answer.isBlank()) {
-                return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
-                        .body("The AI service returned an empty answer.");
-            }
-
-            // GeminiService returns errors as strings beginning with Error:.
-            if (answer.startsWith("Error:")) {
-                return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
-                        .body("The AI service failed. Please try again.");
-            }
-
-            // Save the conversation against the logged-in student's email.
-            ChatMessage chat = new ChatMessage();
-            chat.setStudentEmail(principal.getName());
-            chat.setQuestion(question);
-            chat.setAnswer(answer);
-
-            ChatMessage savedChat = repository.save(chat);
-
-            return ResponseEntity.ok(
-                    new ChatResponse(savedChat.getAnswer()));
-
-        } catch (Exception e) {
-            // Avoid exposing internal server details to the browser.
-            return ResponseEntity.status(
-                    HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Unable to process your question. Please try again.");
+            answer = geminiService.askGemini(question);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
+                    .body("The AI provider is unavailable. Check that "
+                            + "GEMINI_API_KEY is valid and enabled, then try again.");
         }
+
+        if (answer == null || answer.isBlank() || answer.startsWith("Error:")) {
+            return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
+                    .body("The AI provider returned no usable answer.");
+        }
+
+        // Save the conversation against the logged-in student's email.
+        ChatMessage chat = new ChatMessage();
+        chat.setStudentEmail(principal.getName());
+        chat.setQuestion(question);
+        chat.setAnswer(answer);
+
+        ChatMessage savedChat = repository.save(chat);
+
+        return ResponseEntity.ok(new ChatResponse(savedChat.getAnswer()));
     }
 
     // GET /api/ai/history

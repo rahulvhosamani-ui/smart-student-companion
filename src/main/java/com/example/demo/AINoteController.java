@@ -214,7 +214,15 @@ public class AINoteController {
                 level.isBlank() ? "College" : level,
                 style.isBlank() ? "Detailed notes" : style);
 
-        String content = geminiService.askGemini(prompt);
+        String content;
+        try {
+            content = geminiService.askGemini(prompt);
+        } catch (IllegalStateException exception) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_GATEWAY,
+                    "AI generation is unavailable. Check that "
+                            + "GEMINI_API_KEY is valid and enabled.");
+        }
 
         if (content == null
                 || content.isBlank()
