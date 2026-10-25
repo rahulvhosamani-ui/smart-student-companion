@@ -1,405 +1,471 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Smart Student Companion helps students manage attendance, assignments, notes, reminders, GPA tracking and academic progress.">
-    <meta name="keywords" content="Smart Student Companion, Student Management System, Attendance Tracker, GPA Calculator, Student Dashboard">
-    <meta name="google-site-verification" content="nondKmq3-2DpJJqGP558BrPdmFX06yStwQX6S-tAqmk">
-    <meta property="og:title" content="Smart Student Companion">
-    <meta property="og:description" content="AI-powered student companion for attendance, assignments, reminders, notes and GPA tracking.">
-    <meta property="og:type" content="website">
-    <link rel="canonical" href="https://smart-student-companion-production.up.railway.app/">
-    <link rel="icon" type="image/png" href="/icon-192.png">
-    <link rel="apple-touch-icon" href="/icon-192.png">
+    <meta name="theme-color" content="#52b788">
+
+    <link rel="manifest" href="/manifest.json">
+
     <title>Login | Smart Student Companion</title>
 
     <style>
-        :root {
-            --bg: #121214;
-            --panel: #1e1e24;
-            --input: #2a2a35;
-            --accent: #52b788;
-            --accent-hover: #40916c;
-            --text: #f5f5f5;
-            --muted: #bdbdbd;
-            --danger: #ff6b6b;
-        }
-
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: Arial, Helvetica, sans-serif;
+            font-family: Arial, sans-serif;
+        }
+
+        :root {
+            --bg: #121214;
+            --panel: #1e1e24;
+            --surface: #2a2a35;
+            --green: #52b788;
+            --green-dark: #40916c;
+            --text: #ffffff;
+            --muted: #bdbdbd;
         }
 
         body {
             min-height: 100vh;
-            padding: 28px 16px;
+            padding: 20px;
             display: flex;
-            align-items: center;
             justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #121214, #1e1e24);
             color: var(--text);
-            background: linear-gradient(135deg, var(--bg), #24242c);
+            overflow-x: hidden;
         }
 
         .container {
-            display: flex;
-            width: min(960px, 100%);
-            min-height: 560px;
-            overflow: hidden;
-            border: 1px solid rgba(255,255,255,.08);
-            border-radius: 20px;
+            width: 100%;
+            max-width: 1100px;
+            min-height: 650px;
             background: var(--panel);
-            box-shadow: 0 18px 50px rgba(0,0,0,.38);
+            border-radius: 20px;
+            overflow: hidden;
+            display: flex;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, .5);
         }
 
         .left {
             flex: 1;
-            padding: 46px 40px;
+            background: var(--green);
+            color: #121214;
+            padding: 50px;
             display: flex;
             flex-direction: column;
             justify-content: center;
-            color: #10251b;
-            background: linear-gradient(145deg, #74c69d, var(--accent));
         }
 
         .left h1 {
-            margin-bottom: 18px;
-            font-size: clamp(28px, 4vw, 38px);
-            line-height: 1.2;
+            font-size: 38px;
+            margin-bottom: 20px;
         }
 
         .left p {
             font-size: 16px;
-            line-height: 1.7;
+            line-height: 1.8;
         }
 
         .features {
-            margin-top: 24px;
-            padding-left: 22px;
+            list-style: none;
+            margin-top: 25px;
         }
 
         .features li {
-            margin: 0 0 12px;
-            font-weight: 600;
+            padding: 8px 0;
+            font-weight: bold;
         }
 
         .right {
             flex: 1;
-            padding: 46px 40px;
+            padding: 50px;
             display: flex;
             flex-direction: column;
             justify-content: center;
-            min-width: 0;
         }
 
         .logo {
-            color: var(--accent);
             text-align: center;
-            font-size: 30px;
+            color: var(--green);
             margin-bottom: 10px;
+            font-size: 32px;
         }
 
         .subtitle {
             text-align: center;
             color: var(--muted);
-            line-height: 1.5;
-            margin-bottom: 28px;
+            margin-bottom: 25px;
         }
 
         .message {
-            display: none;
-            padding: 12px 14px;
+            padding: 12px;
             border-radius: 8px;
             margin-bottom: 16px;
             text-align: center;
-            line-height: 1.4;
-            overflow-wrap: anywhere;
+            font-size: 14px;
         }
 
         .error {
-            color: #fff;
-            background: #a83240;
-            border: 1px solid #e45b68;
+            background: #4c2424;
+            color: #ffb8b8;
+            border: 1px solid #ff7777;
         }
 
         .success {
-            color: #10251b;
-            background: var(--accent);
+            background: #204233;
+            color: #b7f7d4;
+            border: 1px solid var(--green);
         }
 
         .input-group {
-            margin-bottom: 19px;
+            margin-bottom: 20px;
         }
 
         .input-group label {
             display: block;
             margin-bottom: 8px;
-            font-weight: 600;
-        }
-
-        .input-wrap {
-            position: relative;
+            font-size: 14px;
         }
 
         .input-group input {
             width: 100%;
-            min-height: 48px;
-            padding: 13px 46px 13px 14px;
-            color: var(--text);
-            background: var(--input);
-            border: 1px solid #41414e;
+            padding: 14px;
             border-radius: 8px;
-            outline: none;
+            border: 1px solid #41414d;
+            background: var(--surface);
+            color: white;
             font-size: 15px;
         }
 
         .input-group input:focus {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(82,183,136,.16);
+            outline: 2px solid var(--green);
+            border-color: transparent;
         }
 
-        .toggle-password {
+        .password-wrapper {
+            position: relative;
+        }
+
+        .password-wrapper input {
+            padding-right: 50px;
+        }
+
+        .eye {
             position: absolute;
+            right: 15px;
             top: 50%;
-            right: 12px;
             transform: translateY(-50%);
-            border: 0;
-            background: transparent;
-            color: var(--accent);
             cursor: pointer;
-            font-size: 19px;
-            padding: 4px;
+            user-select: none;
+            font-size: 18px;
         }
 
         #passwordStrength {
             margin-top: 8px;
             font-size: 13px;
-            min-height: 16px;
         }
 
-        .login-btn, .register-link {
-            width: 100%;
-            min-height: 48px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 9px;
-            font-size: 16px;
-            font-weight: 700;
-            text-align: center;
+        .forgot {
+            text-align: right;
+            margin-bottom: 20px;
+        }
+
+        a {
+            color: var(--green);
             text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .login-btn,
+        .register-btn {
+            width: 100%;
+            padding: 14px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            text-align: center;
+            transition: 0.2s;
             cursor: pointer;
-            transition: background .2s ease, transform .2s ease;
         }
 
         .login-btn {
             border: none;
-            color: #10251b;
-            background: var(--accent);
+            background: var(--green);
+            color: #121214;
         }
 
         .login-btn:hover {
-            background: var(--accent-hover);
-            color: white;
+            background: var(--green-dark);
         }
 
-        .register-prompt {
-            margin-top: 22px;
-            margin-bottom: 11px;
+        .register-section {
+            margin-top: 25px;
             text-align: center;
-            color: var(--muted);
-            font-size: 14px;
         }
 
-        .register-link {
-            border: 1px solid var(--accent);
-            color: var(--accent);
+        .register-section p {
+            color: var(--muted);
+            margin-bottom: 10px;
+        }
+
+        .register-btn {
+            display: block;
+            border: 1px solid var(--green);
+            color: var(--green);
             background: transparent;
         }
 
-        .register-link:hover {
-            color: #10251b;
-            background: var(--accent);
+        .register-btn:hover {
+            background: #263d32;
         }
 
         .footer {
-            margin-top: 24px;
+            margin-top: 25px;
             text-align: center;
             color: #999;
-            font-size: 12px;
+            font-size: 13px;
         }
 
-        @media (max-width: 720px) {
+        @media (max-width: 992px) {
+
+            .left,
+            .right {
+                padding: 35px;
+            }
+        }
+
+        @media (max-width: 768px) {
+
             body {
-                padding: 18px 12px;
-                align-items: flex-start;
+                padding: 12px;
             }
 
             .container {
                 flex-direction: column;
-                width: 100%;
-                min-height: auto;
-                border-radius: 15px;
+                max-width: 550px;
             }
 
-            .left, .right {
-                padding: 28px 23px;
+            .left,
+            .right {
+                width: 100%;
+                padding: 28px;
+            }
+
+            .left {
+                text-align: center;
             }
 
             .left h1 {
-                font-size: 29px;
+                font-size: 28px;
             }
 
-            .features {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 5px 12px;
+            .left p {
+                font-size: 15px;
+            }
+
+            .features li {
+                text-align: left;
+                font-size: 14px;
+            }
+        }
+
+        @media (max-width: 480px) {
+
+            body {
+                padding: 8px;
+            }
+
+            .container {
+                border-radius: 12px;
+            }
+
+            .left,
+            .right {
+                padding: 20px;
+            }
+
+            .left h1 {
+                font-size: 24px;
+            }
+
+            .logo {
+                font-size: 26px;
+            }
+
+            .input-group input {
+                padding: 12px;
+            }
+
+            .forgot {
+                text-align: center;
             }
 
             .features li {
                 font-size: 13px;
-                margin-bottom: 7px;
-            }
-
-            .logo {
-                font-size: 27px;
-            }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-            *, *::before, *::after {
-                transition: none !important;
             }
         }
     </style>
 </head>
 
 <body>
-    <main class="container">
-        <section class="left" aria-label="Smart Student Companion features">
-            <h1>🎓 Smart Student Companion</h1>
-            <p>
-                Your complete academic companion for managing studies,
-                assignments, attendance, GPA and AI-powered learning.
-            </p>
 
-            <ul class="features">
-                <li>📚 Notes Management</li>
-                <li>📝 Assignment Tracker</li>
-                <li>📅 Attendance Tracking</li>
-                <li>📊 GPA Analysis</li>
-                <li>🤖 AI Notes Generator</li>
-                <li>📖 Flashcards</li>
-                <li>💬 AI Study Assistant</li>
-                <li>⏰ Smart Reminders</li>
-            </ul>
-        </section>
+<div class="container">
 
-        <section class="right" aria-label="Login">
-            <h2 class="logo">Welcome Back</h2>
-            <p class="subtitle">Log in to continue learning</p>
+    <section class="left">
+        <h1>🎓 Smart Student</h1>
 
-            <div id="errorMessage" class="message error" role="alert">
-                Invalid email or password. Please try again.
+        <p>
+            Your complete academic companion for managing studies,
+            assignments, attendance, GPA and AI-powered learning.
+        </p>
+
+        <ul class="features">
+            <li>📚 Notes Management</li>
+            <li>📝 Assignment Tracker</li>
+            <li>📅 Attendance Tracking</li>
+            <li>📊 GPA Analysis</li>
+            <li>🤖 AI Notes Generator</li>
+            <li>📖 Flashcards</li>
+            <li>💬 AI Study Assistant</li>
+            <li>⏰ Smart Reminders</li>
+        </ul>
+    </section>
+
+    <main class="right">
+
+        <h1 class="logo">Welcome Back</h1>
+        <p class="subtitle">Login to continue learning</p>
+
+        <div class="message error"
+             role="alert"
+             th:if="${param.error}">
+            Invalid email or password. Please try again.
+        </div>
+
+        <div class="message success"
+             role="status"
+             th:if="${param.logout}">
+            You have signed out successfully.
+        </div>
+
+        <div class="message success"
+             role="status"
+             th:if="${param.registered}">
+            Registration successful. Please log in.
+        </div>
+
+        <form th:action="@{/perform_login}"
+              action="/perform_login"
+              method="post">
+
+            <div class="input-group">
+                <label for="username">Email</label>
+
+                <input
+                    type="email"
+                    id="username"
+                    name="username"
+                    placeholder="Enter your email"
+                    autocomplete="username"
+                    required>
             </div>
-            <div id="logoutMessage" class="message success" role="status">
-                You have logged out successfully.
-            </div>
-            <div id="registeredMessage" class="message success" role="status">
-                Registration successful! Please log in.
-            </div>
 
-            <!-- Matches SecurityConfig: loginProcessingUrl("/login"),
-                 usernameParameter("email"), passwordParameter("password"). -->
-            <form th:action="@{/login}" action="/login" method="post">
-                <div class="input-group">
-                    <label for="email">Email</label>
+            <div class="input-group">
+
+                <label for="password">Password</label>
+
+                <div class="password-wrapper">
+
                     <input
-                        id="email"
-                        type="email"
-                        name="email"
-                        placeholder="Enter your email"
-                        autocomplete="username"
-                        maxlength="150"
+                        type="password"
+                        id="password"
+                        name="password"
+                        placeholder="Enter your password"
+                        autocomplete="current-password"
                         required>
+
+                    <span class="eye"
+                          id="eye"
+                          onclick="togglePassword()">👁</span>
+
                 </div>
 
-                <div class="input-group">
-                    <label for="password">Password</label>
-                    <div class="input-wrap">
-                        <input
-                            id="password"
-                            type="password"
-                            name="password"
-                            placeholder="Enter your password"
-                            autocomplete="current-password"
-                            required>
-                        <button
-                            class="toggle-password"
-                            id="togglePassword"
-                            type="button"
-                            aria-label="Show password"
-                            aria-pressed="false">👁</button>
-                    </div>
-                    <div id="passwordStrength" aria-live="polite"></div>
-                </div>
+                <div id="passwordStrength"></div>
 
-                <!-- Spring Security inserts the CSRF token automatically for Thymeleaf forms. -->
-                <button class="login-btn" type="submit">Login</button>
-            </form>
+            </div>
 
-            <p class="register-prompt">Don't have an account?</p>
-            <a class="register-link" th:href="@{/register}" href="/register">
+            <div class="forgot">
+                <a href="/forgot-password.html">Forgot Password?</a>
+            </div>
+
+            <button class="login-btn" type="submit">
+                Login
+            </button>
+
+        </form>
+
+        <div class="register-section">
+
+            <p>Don't have an account?</p>
+
+            <a class="register-btn" href="/register">
                 Create New Account
             </a>
 
-            <div class="footer">Smart Student Companion © 2026</div>
-        </section>
+        </div>
+
+        <div class="footer">
+            Smart Student Companion © 2026
+        </div>
+
     </main>
 
-    <script>
-        (() => {
-            const params = new URLSearchParams(window.location.search);
-            const showMessage = (id) => {
-                const element = document.getElementById(id);
-                if (element) element.style.display = "block";
-            };
+</div>
 
-            if (params.has("error")) showMessage("errorMessage");
-            if (params.has("logout")) showMessage("logoutMessage");
-            if (params.has("registered")) showMessage("registeredMessage");
+<script>
+    function togglePassword() {
 
-            const password = document.getElementById("password");
-            const toggle = document.getElementById("togglePassword");
-            const strength = document.getElementById("passwordStrength");
+        const password = document.getElementById("password");
+        const eye = document.getElementById("eye");
 
-            toggle.addEventListener("click", () => {
-                const showing = password.type === "password";
-                password.type = showing ? "text" : "password";
-                toggle.textContent = showing ? "🙈" : "👁";
-                toggle.setAttribute("aria-label", showing ? "Hide password" : "Show password");
-                toggle.setAttribute("aria-pressed", String(showing));
-            });
+        if (password.type === "password") {
+            password.type = "text";
+            eye.textContent = "🙈";
+        } else {
+            password.type = "password";
+            eye.textContent = "👁";
+        }
+    }
 
-            password.addEventListener("input", () => {
-                const value = password.value;
-                if (!value) {
-                    strength.textContent = "";
-                    strength.style.color = "";
-                } else if (value.length < 6) {
-                    strength.textContent = "Short password";
-                    strength.style.color = "#ff6b6b";
-                } else if (value.length < 10) {
-                    strength.textContent = "Medium length";
-                    strength.style.color = "#ffc857";
-                } else {
-                    strength.textContent = "Good length";
-                    strength.style.color = "#52b788";
-                }
-            });
-        })();
-    </script>
+    function checkPasswordStrength() {
+
+        const password = document.getElementById("password").value;
+        const strength = document.getElementById("passwordStrength");
+
+        if (!password) {
+            strength.textContent = "";
+        } else if (password.length < 6) {
+            strength.textContent = "Weak password";
+            strength.style.color = "#ff7777";
+        } else if (password.length < 10) {
+            strength.textContent = "Medium password";
+            strength.style.color = "#ffc107";
+        } else {
+            strength.textContent = "Strong password";
+            strength.style.color = "#52b788";
+        }
+    }
+
+    document.getElementById("password")
+        .addEventListener("input", checkPasswordStrength);
+</script>
+
 </body>
 </html>

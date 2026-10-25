@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Study Assistant | Smart Student Companion</title>
+
+<style>
+:root {
+    --bg: #121214;
+    --panel: #1e1e24;
+    --surface: #2a2a35;
+    --green: #52b788;
+    --green-dark: #40916c;
+    --text: #ffffff;
+    --muted: #bdbdbd;
+    --border: #35353f;
+    --danger: #ff7777;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+}
+
+button, input {
+    font: inherit;
+}
+
+button {
+    cursor: pointer;
+}
+
+.layout {
+    display: flex;
+    min-height: 100vh;
+}
+
+.sidebar {
+    width: 250px;
+    flex-shrink: 0;
+    background: var(--panel);
+    padding: 24px 16px;
+    border-right: 1px solid var(--border);
+}
+
+.logo {
+    color: var(--green);
+    text-align: center;
+    font-size: 22px;
+    margin-bottom: 30px;
+}
+
+.menu {
+    list-style: none;
+}
+
+.menu li {
+    margin: 7px 0;
+}
+
+.menu a {
+    display: block;
+    color: var(--text);
+    text-decoration: none;
+    padding: 12px;
+    border-radius: 8px;
+    transition: 0.2s;
+}
+
+.menu a:hover,
+.menu a.active {
+    background: var(--surface);
+    color: var(--green);
+}
+
+.main {
+    flex: 1;
+    min-width: 0;
+    padding: 25px;
+}
+
+.topbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.menu-toggle {
+    display: none;
+    background: var(--panel);
+    color: var(--green);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 13px;
+}
+
+.card {
+    height: calc(100vh - 50px);
+    min-height: 480px;
+    max-height: 1000px;
+    display: flex;
+    flex-direction: column;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.chat-header {
+    padding: 22px;
+    border-bottom: 1px solid var(--border);
+}
+
+h1 {
+    color: var(--green);
+    font-size: 25px;
+    margin-bottom: 8px;
+}
+
+.subtitle {
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.status {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    color: var(--green);
+    font-size: 12px;
+    margin-top: 12px;
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--green);
+}
+
+.chat-box {
+    flex: 1;
+    overflow-y: auto;
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    scroll-behavior: smooth;
+}
+
+.welcome {
+    margin: auto;
+    text-align: center;
+    max-width: 450px;
+    padding: 25px 10px;
+}
+
+.welcome-icon {
+    font-size: 42px;
+    margin-bottom: 14px;
+}
+
+.welcome h2 {
+    color: var(--green);
+    font-size: 22px;
+    margin-bottom: 10px;
+}
+
+.welcome p {
+    color: var(--muted);
+    line-height: 1.6;
+    font-size: 14px;
+}
+
+.suggestions {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 18px;
+}
+
+.suggestion {
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 9px 12px;
+    font-size: 12px;
+}
+
+.suggestion:hover {
+    border-color: var(--green);
+    color: var(--green);
+}
+
+.message {
+    max-width: 82%;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.message.user {
+    align-self: flex-end;
+    align-items: flex-end;
+}
+
+.message.ai {
+    align-self: flex-start;
+    align-items: flex-start;
+}
+
+.message-label {
+    font-size: 12px;
+    color: var(--muted);
+}
+
+.bubble {
+    padding: 13px 15px;
+    border-radius: 13px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    font-size: 14px;
+}
+
+.user .bubble {
+    background: #304b41;
+    border: 1px solid #426b59;
+    border-bottom-right-radius: 4px;
+}
+
+.ai .bubble {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-bottom-left-radius: 4px;
+}
+
+.message-time {
+    color: #92929c;
+    font-size: 10px;
+}
+
+.typing {
+    color: var(--muted);
+    font-size: 13px;
+    padding: 10px 0;
+}
+
+.error-text {
+    color: var(--danger);
+}
+
+.bottom-area {
+    border-top: 1px solid var(--border);
+    padding: 15px 20px;
+}
+
+.input-area {
+    display: flex;
+    gap: 10px;
+}
+
+.input-area input {
+    flex: 1;
+    min-width: 0;
+    padding: 14px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    outline: none;
+    background: var(--surface);
+    color: var(--text);
+}
+
+.input-area input:focus {
+    border-color: var(--green);
+}
+
+.send-btn {
+    background: var(--green);
+    color: #121214;
+    border: none;
+    border-radius: 10px;
+    padding: 0 20px;
+    font-weight: bold;
+}
+
+.send-btn:hover {
+    background: var(--green-dark);
+    color: white;
+}
+
+.send-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+}
+
+.action-btn {
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 9px 13px;
+    font-size: 12px;
+}
+
+.action-btn:hover {
+    border-color: var(--green);
+    color: var(--green);
+}
+
+.hint {
+    color: #92929c;
+    font-size: 11px;
+    margin-top: 10px;
+}
+
+.backdrop {
+    display: none;
+}
+
+@media (max-width: 800px) {
+    .sidebar {
+        position: fixed;
+        z-index: 10;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        transform: translateX(-100%);
+        transition: transform 0.25s;
+        overflow-y: auto;
+    }
+
+    .sidebar.open {
+        transform: translateX(0);
+    }
+
+    .backdrop.show {
+        display: block;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.65);
+        z-index: 9;
+    }
+
+    .main {
+        padding: 12px;
+        width: 100%;
+    }
+
+    .menu-toggle {
+        display: inline-block;
+    }
+
+    .card {
+        height: calc(100dvh - 75px);
+        min-height: 420px;
+    }
+
+    .chat-header {
+        padding: 17px;
+    }
+
+    .chat-box {
+        padding: 15px;
+    }
+
+    .bottom-area {
+        padding: 12px;
+    }
+
+    .message {
+        max-width: 92%;
+    }
+
+    h1 {
+        font-size: 21px;
+    }
+
+    .send-btn {
+        padding: 0 14px;
+    }
+}
+
+@media (max-width: 420px) {
+    .input-area {
+        gap: 6px;
+    }
+
+    .input-area input {
+        padding: 12px 10px;
+        font-size: 13px;
+    }
+
+    .send-btn {
+        padding: 0 12px;
+        font-size: 13px;
+    }
+}
+</style>
+</head>
+
+<body>
+<div class="layout">
+
+    <aside class="sidebar" id="sidebar">
+        <h2 class="logo">🎓 Smart Student</h2>
+
+        <ul class="menu">
+            <li><a href="dashboard.html">🏠 Dashboard</a></li>
+            <li><a href="notes.html">📚 Notes</a></li>
+            <li><a href="assignments.html">📝 Assignments</a></li>
+            <li><a href="attendance.html">📅 Attendance</a></li>
+            <li><a href="gpa.html">📊 GPA Tracker</a></li>
+            <li><a href="reminders.html">⏰ Reminders</a></li>
+            <li><a href="ainotes.html">🤖 AI Notes</a></li>
+            <li><a href="flashcards.html">📖 Flashcards</a></li>
+            <li><a class="active" href="chatbot.html">🤖 AI Assistant</a></li>
+        </ul>
+    </aside>
+
+    <div class="backdrop" id="backdrop"></div>
+
+    <main class="main">
+        <div class="topbar">
+            <button class="menu-toggle" id="menuToggle"
+                    aria-label="Open navigation">☰</button>
+            <span class="subtitle">Your personal study companion</span>
+        </div>
+
+        <section class="card">
+            <header class="chat-header">
+                <h1>🤖 AI Study Assistant</h1>
+                <p class="subtitle">
+                    Ask questions, understand concepts, and get help with your studies.
+                </p>
+                <div class="status">
+                    <span class="status-dot"></span>
+                    Study assistant
+                </div>
+            </header>
+
+            <div class="chat-box" id="chatBox" aria-live="polite">
+                <div class="welcome" id="welcome">
+                    <div class="welcome-icon">📚</div>
+                    <h2>What would you like to learn?</h2>
+                    <p>Ask a question about programming, DBMS, exams, or any study topic.</p>
+
+                    <div class="suggestions">
+                        <button class="suggestion"
+                            data-question="Explain DBMS in simple words.">
+                            Explain DBMS
+                        </button>
+                        <button class="suggestion"
+                            data-question="Explain object-oriented programming with examples.">
+                            OOP concepts
+                        </button>
+                        <button class="suggestion"
+                            data-question="Give me a simple study plan for my exams.">
+                            Study plan
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bottom-area">
+                <form class="input-area" id="chatForm">
+                    <input
+                        type="text"
+                        id="question"
+                        placeholder="Ask your study question..."
+                        maxlength="2000"
+                        autocomplete="off"
+                        aria-label="Your question"
+                        required>
+                    <button class="send-btn" id="sendBtn" type="submit">
+                        Send ➤
+                    </button>
+                </form>
+
+                <div class="actions">
+                    <button class="action-btn" id="clearBtn" type="button">
+                        🗑 Clear visible chat
+                    </button>
+                    <button class="action-btn" id="downloadBtn" type="button">
+                        ⬇ Download chat
+                    </button>
+                    <button class="action-btn" id="historyBtn" type="button">
+                        ↻ Reload history
+                    </button>
+                </div>
+
+                <p class="hint">
+                    Press Enter to send. Check important answers against your study materials.
+                </p>
+            </div>
+        </section>
+    </main>
+</div>
+
+<script>
+"use strict";
+
+const API = {
+    history: "/api/ai/history",
+    chat: "/api/ai/chat"
+};
+
+const chatBox = document.getElementById("chatBox");
+const questionInput = document.getElementById("question");
+const sendBtn = document.getElementById("sendBtn");
+const chatForm = document.getElementById("chatForm");
+const welcome = document.getElementById("welcome");
+
+let isSending = false;
+let chatHistory = [];
+
+function getTime() {
+    return new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit"
+    });
+}
+
+function hideWelcome() {
+    if (welcome) welcome.style.display = "none";
+}
+
+function showWelcomeIfEmpty() {
+    const hasMessages = chatBox.querySelector(".message");
+    if (welcome) welcome.style.display = hasMessages ? "none" : "block";
+}
+
+function addMessage(role, text, time = getTime()) {
+    hideWelcome();
+
+    const message = document.createElement("div");
+    message.className = "message " + role;
+
+    const label = document.createElement("div");
+    label.className = "message-label";
+    label.textContent = role === "user" ? "You" : "🤖 AI Assistant";
+
+    const bubble = document.createElement("div");
+    bubble.className = "bubble";
+    bubble.textContent = String(text ?? "");
+
+    const timestamp = document.createElement("div");
+    timestamp.className = "message-time";
+    timestamp.textContent = time;
+
+    message.append(label, bubble, timestamp);
+    chatBox.appendChild(message);
+    chatBox.scrollTop = chatBox.scrollHeight;
+
+    return message;
+}
+
+function csrfHeaders() {
+    const match = document.cookie.match(/(?:^|;\s*)XSRF-TOKEN=([^;]+)/);
+    if (!match) return {};
+    try { return { "X-XSRF-TOKEN": decodeURIComponent(match[1]) }; }
+    catch (_) { return { "X-XSRF-TOKEN": match[1] }; }
+}
+
+async function fetchJSON(url, options = {}) {
+    const response = await fetch(url, {
+        credentials: "same-origin",
+        ...options,
+        headers: {
+            ...csrfHeaders(),
+            ...(options.body ? { "Content-Type": "application/json" } : {}),
+            ...(options.headers || {})
+        }
+    });
+
+    if (!response.ok) {
+        throw new Error("Request failed (" + response.status + ")");
+    }
+
+    return response.json();
+}
+
+function normalizeHistory(data) {
+    if (Array.isArray(data)) return data;
+    if (data && Array.isArray(data.content)) return data.content;
+    if (data && Array.isArray(data.chats)) return data.chats;
+    return [];
+}
+
+async function loadHistory() {
+    const historyBtn = document.getElementById("historyBtn");
+    historyBtn.disabled = true;
+
+    try {
+        const data = await fetchJSON(API.history);
+        const chats = normalizeHistory(data);
+
+        chatBox.querySelectorAll(".message").forEach(node => node.remove());
+        chatHistory = [];
+
+        chats.forEach(chat => {
+            if (chat.question != null) {
+                const question = String(chat.question);
+                const answer = String(chat.answer ?? "No answer saved.");
+
+                addMessage("user", question);
+                addMessage("ai", answer);
+
+                chatHistory.push({ question, answer });
+            }
+        });
+
+        showWelcomeIfEmpty();
+    } catch (error) {
+        console.error("History loading failed:", error);
+        addMessage(
+            "ai",
+            "I couldn't load chat history. Check that the backend endpoint /api/ai/history is available."
+        );
+    } finally {
+        historyBtn.disabled = false;
+    }
+}
+
+async function askAI(question) {
+    if (isSending) return;
+
+    question = question.trim();
+    if (!question) return;
+
+    isSending = true;
+    sendBtn.disabled = true;
+    questionInput.disabled = true;
+
+    addMessage("user", question);
+
+    const typing = document.createElement("div");
+    typing.className = "typing";
+    typing.textContent = "AI is preparing an answer...";
+    chatBox.appendChild(typing);
+    chatBox.scrollTop = chatBox.scrollHeight;
+
+    questionInput.value = "";
+
+    try {
+        const data = await fetchJSON(API.chat, {
+            method: "POST",
+            body: JSON.stringify({ question })
+        });
+
+        if (!data || data.answer == null) {
+            throw new Error("The server response did not contain an answer.");
+        }
+
+        const answer = String(data.answer);
+        addMessage("ai", answer);
+        chatHistory.push({ question, answer });
+    } catch (error) {
+        console.error("AI request failed:", error);
+
+        const errorMessage = addMessage(
+            "ai",
+            "Unable to get an AI answer. Please check your internet connection and the Spring Boot backend, then try again."
+        );
+        errorMessage.querySelector(".bubble").classList.add("error-text");
+    } finally {
+        typing.remove();
+        isSending = false;
+        sendBtn.disabled = false;
+        questionInput.disabled = false;
+        questionInput.focus();
+    }
+}
+
+chatForm.addEventListener("submit", event => {
+    event.preventDefault();
+    askAI(questionInput.value);
+});
+
+document.querySelectorAll(".suggestion").forEach(button => {
+    button.addEventListener("click", () => {
+        const question = button.dataset.question;
+        if (question) askAI(question);
+    });
+});
+
+document.getElementById("clearBtn").addEventListener("click", () => {
+    chatBox.querySelectorAll(".message, .typing").forEach(node => node.remove());
+    chatHistory = [];
+    showWelcomeIfEmpty();
+});
+
+document.getElementById("downloadBtn").addEventListener("click", () => {
+    const messages = Array.from(chatBox.querySelectorAll(".message"));
+
+    if (messages.length === 0) {
+        alert("There are no messages to download.");
+        return;
+    }
+
+    const lines = messages.map(message => {
+        const label = message.querySelector(".message-label")?.textContent || "";
+        const text = message.querySelector(".bubble")?.textContent || "";
+        const time = message.querySelector(".message-time")?.textContent || "";
+        return `[${time}] ${label}:\n${text}`;
+    });
+
+    const blob = new Blob(
+        ["AI Study Assistant Chat\n\n" + lines.join("\n\n")],
+        { type: "text/plain;charset=utf-8" }
+    );
+
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "AI_Study_Assistant_Chat.txt";
+    link.click();
+    URL.revokeObjectURL(url);
+});
+
+document.getElementById("historyBtn").addEventListener("click", loadHistory);
+
+// Mobile sidebar
+const sidebar = document.getElementById("sidebar");
+const backdrop = document.getElementById("backdrop");
+
+function closeSidebar() {
+    sidebar.classList.remove("open");
+    backdrop.classList.remove("show");
+}
+
+document.getElementById("menuToggle").addEventListener("click", () => {
+    sidebar.classList.toggle("open");
+    backdrop.classList.toggle("show");
+});
+
+backdrop.addEventListener("click", closeSidebar);
+
+sidebar.querySelectorAll("a").forEach(link => {
+    link.addEventListener("click", closeSidebar);
+});
+
+loadHistory();
+</script>
+</body>
+</html>
