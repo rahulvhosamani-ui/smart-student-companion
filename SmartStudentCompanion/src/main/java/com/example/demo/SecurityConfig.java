@@ -49,6 +49,8 @@ public class SecurityConfig {
                             "/forgot-password",
                             "/forgot-password.html",
                             "/manifest.json",
+                            "/robots.txt",
+                            "/sitemap.xml",
                             "/sw.js",
                             "/favicon.ico",
                             "/icon-192.png",
