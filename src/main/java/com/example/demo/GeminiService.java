@@ -182,13 +182,12 @@ public class GeminiService {
                 System.out.println("Response: " + e.getResponseBodyAsString());
                 System.out.println("==================================");
 
-        throw new IllegalStateException(
-                "Gemini API returned HTTP "
-            + e.getStatusCode().value()
-            + ". Response: "
-            + e.getResponseBodyAsString());
-}                     
-        catch (IllegalStateException
+                throw new IllegalStateException(
+                        "Gemini API returned HTTP "
+                        + e.getStatusCode().value()
+                        + ". Response: "
+                        + e.getResponseBodyAsString());
+        } catch (IllegalStateException
                         | IllegalArgumentException e) {
                 throw e;
 
