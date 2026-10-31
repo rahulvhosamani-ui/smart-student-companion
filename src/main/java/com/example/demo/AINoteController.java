@@ -218,10 +218,19 @@ public class AINoteController {
         try {
             content = geminiService.askGemini(prompt);
         } catch (IllegalStateException exception) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_GATEWAY,
-                    "AI generation is unavailable. Check that "
-                            + "GEMINI_API_KEY is valid and enabled.");
+
+                exception.printStackTrace();
+
+                throw new ResponseStatusException(
+                        HttpStatus.BAD_GATEWAY,
+                        exception.getMessage());
+        } catch (RuntimeException exception) {
+
+                exception.printStackTrace();
+
+                throw new ResponseStatusException(
+                        HttpStatus.BAD_GATEWAY,
+                        exception.getMessage());
         }
 
         if (content == null

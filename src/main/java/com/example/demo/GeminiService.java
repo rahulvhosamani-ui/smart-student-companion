@@ -44,6 +44,11 @@ public class GeminiService {
     }
 
     public String askGemini(String question) {
+        System.out.println(
+                "API Key Present: "
+                + (apiKey != null && !apiKey.isBlank()));
+
+        System.out.println("Model: " + model);
 
         if (apiKey == null || apiKey.isBlank()) {
             throw new IllegalStateException(
@@ -172,23 +177,20 @@ public class GeminiService {
 
         } catch (HttpStatusCodeException e) {
 
-            // Do not expose the API key or complete request URL.
-            throw new IllegalStateException(
-                    "Gemini API returned HTTP "
-                    + e.getStatusCode().value()
-                    + ". Check the API key, model name, quota, "
-                    + "and API permissions.");
+                System.out.println("========== GEMINI ERROR ==========");
+                System.out.println("Status: " + e.getStatusCode());
+                System.out.println("Response: " + e.getResponseBodyAsString());
+                System.out.println("==================================");
 
-        } catch (ResourceAccessException e) {
-
-            throw new IllegalStateException(
-                    "Could not connect to Gemini. "
-                    + "Check your internet connection or try again later.");
-
-        } catch (IllegalStateException
-                | IllegalArgumentException e) {
-
-            throw e;
+        throw new IllegalStateException(
+                "Gemini API returned HTTP "
+            + e.getStatusCode().value()
+            + ". Response: "
+            + e.getResponseBodyAsString());
+}                     
+        catch (IllegalStateException
+                        | IllegalArgumentException e) {
+                throw e;
 
         } catch (Exception e) {
 
