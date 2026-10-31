@@ -224,13 +224,11 @@ public class AINoteController {
                 throw new ResponseStatusException(
                         HttpStatus.BAD_GATEWAY,
                         exception.getMessage());
-        } catch (RuntimeException exception) {
+        } catch (Exception exception) {
 
                 exception.printStackTrace();
 
-                throw new ResponseStatusException(
-                        HttpStatus.BAD_GATEWAY,
-                        exception.getMessage());
+                return null;
         }
 
         if (content == null
