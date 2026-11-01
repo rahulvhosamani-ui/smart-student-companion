@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flashcards | Smart Student Companion</title>
+
+<style>
+:root {
+    --bg: #121214;
+    --panel: #1e1e24;
+    --surface: #2a2a35;
+    --green: #52b788;
+    --green-dark: #40916c;
+    --text: #ffffff;
+    --muted: #bdbdbd;
+    --border: #383842;
+    --red: #ff7777;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+}
+
+button, input, textarea {
+    font: inherit;
+}
+
+button {
+    cursor: pointer;
+}
+
+.layout {
+    display: flex;
+    min-height: 100vh;
+}
+
+.sidebar {
+    width: 250px;
+    flex-shrink: 0;
+    background: var(--panel);
+    border-right: 1px solid var(--border);
+    padding: 24px 16px;
+}
+
+.logo {
+    color: var(--green);
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 22px;
+}
+
+.menu {
+    list-style: none;
+}
+
+.menu li {
+    margin: 7px 0;
+}
+
+.menu a {
+    display: block;
+    color: var(--text);
+    padding: 12px;
+    text-decoration: none;
+    border-radius: 8px;
+    transition: 0.2s;
+}
+
+.menu a:hover,
+.menu a.active {
+    background: var(--surface);
+    color: var(--green);
+}
+
+.main {
+    flex: 1;
+    min-width: 0;
+    padding: 25px;
+}
+
+.topbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 22px;
+}
+
+.menu-toggle {
+    display: none;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    color: var(--green);
+    padding: 10px 13px;
+    border-radius: 8px;
+}
+
+.subtitle {
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 25px;
+    border-radius: 15px;
+    margin-bottom: 20px;
+}
+
+h1, h2 {
+    color: var(--green);
+}
+
+h1 {
+    font-size: 26px;
+    margin-bottom: 8px;
+}
+
+h2 {
+    font-size: 18px;
+    margin-bottom: 15px;
+}
+
+.stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.stat {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px;
+}
+
+.stat-label {
+    color: var(--muted);
+    font-size: 13px;
+    margin-bottom: 9px;
+}
+
+.stat-value {
+    color: var(--green);
+    font-size: 27px;
+    font-weight: bold;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.field label {
+    display: block;
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 8px;
+}
+
+input, textarea {
+    width: 100%;
+    padding: 13px;
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    outline: none;
+}
+
+input:focus, textarea:focus {
+    border-color: var(--green);
+}
+
+textarea {
+    min-height: 95px;
+    resize: vertical;
+}
+
+button:focus-visible, a:focus-visible {
+    outline: 2px solid var(--green);
+    outline-offset: 3px;
+}
+
+.btn {
+    border: 1px solid transparent;
+    border-radius: 8px;
+    padding: 11px 15px;
+    font-weight: bold;
+    transition: 0.2s;
+}
+
+.btn-primary {
+    background: var(--green);
+    color: #121214;
+}
+
+.btn-primary:hover {
+    background: var(--green-dark);
+    color: white;
+}
+
+.btn-secondary {
+    background: var(--surface);
+    border-color: var(--border);
+    color: var(--text);
+}
+
+.btn-secondary:hover {
+    border-color: var(--green);
+    color: var(--green);
+}
+
+.btn-danger {
+    background: transparent;
+    border-color: #703c43;
+    color: var(--red);
+}
+
+.btn-danger:hover {
+    background: #382329;
+}
+
+.toolbar {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+}
+
+.search {
+    flex: 1;
+    min-width: 180px;
+}
+
+.study-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(230px, 0.6fr);
+    gap: 20px;
+    align-items: start;
+}
+
+.study-panel {
+    min-width: 0;
+}
+
+.study-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 18px;
+}
+
+.study-header h2 {
+    margin: 0;
+}
+
+.counter {
+    color: var(--muted);
+    font-size: 13px;
+    white-space: nowrap;
+}
+
+.progress-track {
+    width: 100%;
+    height: 7px;
+    background: var(--surface);
+    border-radius: 20px;
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+
+.progress-bar {
+    width: 0;
+    height: 100%;
+    background: var(--green);
+    transition: width 0.25s;
+}
+
+.flip-card {
+    min-height: 270px;
+    perspective: 1000px;
+    cursor: pointer;
+    outline: none;
+}
+
+.flip-inner {
+    position: relative;
+    min-height: 270px;
+    width: 100%;
+    transform-style: preserve-3d;
+    transition: transform 0.5s;
+}
+
+.flip-card.flipped .flip-inner {
+    transform: rotateY(180deg);
+}
+
+.flip-face {
+    position: absolute;
+    inset: 0;
+    min-height: 270px;
+    padding: 28px;
+    border-radius: 15px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    overflow-wrap: anywhere;
+}
+
+.flip-face.front {
+    border-top: 3px solid var(--green);
+}
+
+.flip-face.back {
+    transform: rotateY(180deg);
+    border-top: 3px solid #8ecae6;
+}
+
+.face-label {
+    color: var(--green);
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 2px;
+    margin-bottom: 18px;
+}
+
+.back .face-label {
+    color: #8ecae6;
+}
+
+.face-text {
+    white-space: pre-wrap;
+    line-height: 1.7;
+    font-size: 19px;
+    font-weight: bold;
+}
+
+.flip-hint {
+    color: var(--muted);
+    font-size: 12px;
+    text-align: center;
+    margin-top: 15px;
+}
+
+.study-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.rating-controls {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.rating-controls button {
+    flex: 1;
+}
+
+.rating-controls .known {
+    background: #245d46;
+    color: #a8f0cb;
+    border-color: #367c5c;
+}
+
+.rating-controls .review {
+    background: #4b3d25;
+    color: #f6d99b;
+    border-color: #776039;
+}
+
+.side-title {
+    color: var(--green);
+    font-size: 17px;
+    margin-bottom: 15px;
+}
+
+.list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 13px 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.list-item:last-child {
+    border-bottom: none;
+}
+
+.list-text {
+    flex: 1;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.list-question {
+    font-size: 13px;
+    line-height: 1.5;
+    margin-bottom: 5px;
+}
+
+.list-status {
+    font-size: 11px;
+    color: var(--muted);
+}
+
+.list-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.small-btn {
+    padding: 6px 9px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--surface);
+    color: var(--text);
+    font-size: 11px;
+}
+
+.small-btn:hover {
+    color: var(--green);
+    border-color: var(--green);
+}
+
+.empty {
+    padding: 35px 12px;
+    text-align: center;
+    color: var(--muted);
+    line-height: 1.7;
+}
+
+.empty-icon {
+    font-size: 36px;
+    margin-bottom: 10px;
+}
+
+.notice {
+    color: var(--muted);
+    font-size: 12px;
+    margin-top: 12px;
+}
+
+.toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--green);
+    border-radius: 10px;
+    padding: 13px 18px;
+    max-width: calc(100% - 40px);
+    z-index: 30;
+}
+
+.backdrop {
+    display: none;
+}
+
+@media (max-width: 950px) {
+    .study-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 800px) {
+    .sidebar {
+        position: fixed;
+        z-index: 20;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        overflow-y: auto;
+        transform: translateX(-100%);
+        transition: transform 0.25s;
+    }
+
+    .sidebar.open {
+        transform: translateX(0);
+    }
+
+    .backdrop.show {
+        display: block;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.65);
+        z-index: 19;
+    }
+
+    .main {
+        padding: 12px;
+        width: 100%;
+    }
+
+    .menu-toggle {
+        display: block;
+    }
+
+    .panel {
+        padding: 18px;
+    }
+
+    .stats {
+        gap: 8px;
+    }
+
+    .stat {
+        padding: 12px;
+    }
+
+    .stat-value {
+        font-size: 22px;
+    }
+
+    .stat-label {
+        font-size: 11px;
+    }
+}
+
+@media (max-width: 500px) {
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .stats {
+        grid-template-columns: 1fr;
+    }
+
+    .stat {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .stat-label {
+        margin: 0;
+    }
+
+    .toolbar .btn {
+        flex: 1;
+    }
+
+    .flip-face, .flip-inner, .flip-card {
+        min-height: 240px;
+    }
+
+    .face-text {
+        font-size: 17px;
+    }
+
+    h1 {
+        font-size: 23px;
+    }
+
+    .study-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .rating-controls {
+        flex-direction: column;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+</style>
+</head>
+
+<body>
+<div class="layout">
+
+    <aside class="sidebar" id="sidebar">
+        <h2 class="logo">🎓 Smart Student</h2>
+        <ul class="menu">
+            <li><a href="dashboard.html">🏠 Dashboard</a></li>
+            <li><a href="notes.html">📚 Notes</a></li>
+            <li><a href="assignments.html">📝 Assignments</a></li>
+            <li><a href="attendance.html">📅 Attendance</a></li>
+            <li><a href="gpa.html">📊 GPA Tracker</a></li>
+            <li><a href="reminders.html">⏰ Reminders</a></li>
+            <li><a href="ainotes.html">🤖 AI Notes</a></li>
+            <li><a class="active" href="flashcards.html">📖 Flashcards</a></li>
+            <li><a href="chatbot.html">🤖 AI Assistant</a></li>
+        </ul>
+        <a href="/logout" class="logout" data-logout style="display:block;margin:18px 10px 0;padding:12px;text-align:center;background:#ff4d4d;color:white;border-radius:8px;text-decoration:none;font-weight:700">Logout</a>
+    </aside>
+
+    <div class="backdrop" id="backdrop"></div>
+
+    <main class="main">
+        <div class="topbar">
+            <button class="menu-toggle" id="menuToggle"
+                    aria-label="Open navigation">☰</button>
+            <span class="subtitle">Create, practise and remember.</span>
+        </div>
+
+        <section class="panel">
+            <h1>📖 Flashcards</h1>
+            <p class="subtitle">
+                Make your own study cards, test your memory, and track your progress.
+            </p>
+        </section>
+
+        <section class="stats">
+            <div class="stat">
+                <div class="stat-label">📚 Total Cards</div>
+                <div class="stat-value" id="totalCount">0</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">✅ Known</div>
+                <div class="stat-value" id="knownCount">0</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">🔄 To Review</div>
+                <div class="stat-value" id="reviewCount">0</div>
+            </div>
+        </section>
+
+        <section class="panel" id="formPanel">
+            <h2 id="formTitle">➕ Create a Flashcard</h2>
+
+            <form id="cardForm">
+                <div class="form-grid">
+                    <div class="field">
+                        <label for="question">Question / Front</label>
+                        <textarea id="question"
+                            maxlength="1000"
+                            placeholder="Example: What is DBMS?"
+                            required></textarea>
+                    </div>
+
+                    <div class="field">
+                        <label for="answer">Answer / Back</label>
+                        <textarea id="answer"
+                            maxlength="2000"
+                            placeholder="Enter the answer..."
+                            required></textarea>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary" id="saveBtn">
+                    ➕ Add Flashcard
+                </button>
+                <button type="button" class="btn btn-secondary"
+                    id="cancelEditBtn" hidden>
+                    Cancel Edit
+                </button>
+            </form>
+
+            <p class="notice">
+                Your cards are saved in this browser on this device.
+            </p>
+        </section>
+
+        <section class="panel">
+            <h2>🔎 Find Your Cards</h2>
+            <div class="toolbar">
+                <input class="search" type="search" id="searchInput"
+                    placeholder="Search questions and answers...">
+
+                <button class="btn btn-secondary" id="shuffleBtn" type="button">
+                    🔀 Shuffle
+                </button>
+
+                <button class="btn btn-secondary" id="exportBtn" type="button">
+                    ⬇ Export
+                </button>
+
+                <button class="btn btn-secondary" id="importBtn" type="button">
+                    ⬆ Import
+                </button>
+
+                <input type="file" id="importFile" accept=".json,application/json"
+                    hidden>
+            </div>
+
+            <div class="toolbar">
+                <button class="btn btn-secondary filter-btn"
+                    data-filter="all" type="button">All Cards</button>
+                <button class="btn btn-secondary filter-btn"
+                    data-filter="review" type="button">To Review</button>
+                <button class="btn btn-secondary filter-btn"
+                    data-filter="known" type="button">Known</button>
+            </div>
+        </section>
+
+        <div class="study-layout">
+            <section class="panel study-panel">
+                <div class="study-header">
+                    <h2>🧠 Study Mode</h2>
+                    <span class="counter" id="cardPosition">0 / 0</span>
+                </div>
+
+                <div class="progress-track">
+                    <div class="progress-bar" id="progressBar"></div>
+                </div>
+
+                <div id="studyArea">
+                    <div class="empty">
+                        <div class="empty-icon">📖</div>
+                        <p>Create a flashcard to start studying.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="panel">
+                <h2 class="side-title">🗂 Your Card Collection</h2>
+                <div id="cardList"></div>
+            </section>
+        </div>
+    </main>
+</div>
+
+<div id="toast" class="toast" role="status" hidden></div>
+
+
+<script src="/csrf.js"></script>
+<script>
+"use strict";
+const API_URL="/api/flashcards",$=id=>document.getElementById(id);let flashcards=[],studyIds=[],currentIndex=0,editingId=null,isFlipped=false;
+async function api(url=API_URL,opts={}){const r=await fetch(url,{...opts,headers:{"Content-Type":"application/json",...(opts.headers||{})}});if(!r.ok)throw new Error("API request failed: "+r.status);if(r.status===204)return null;const t=await r.text();return t?JSON.parse(t):null}
+function arr(d){return Array.isArray(d)?d:Array.isArray(d?.data)?d.data:[]}
+function toast(t){$("toast").textContent=t;$("toast").hidden=false;setTimeout(()=>$("toast").hidden=true,2500)}
+async function load(){try{flashcards=arr(await api());studyIds=flashcards.map(x=>x.id);render()}catch(e){toast("Cannot load flashcards: "+e.message)}}
+function render(){const q=$("searchInput").value.toLowerCase(),shown=flashcards.filter(x=>(x.question+" "+x.answer).toLowerCase().includes(q));$("cardList").replaceChildren();shown.forEach(x=>{const c=document.createElement("article");c.className="flashcard-item";const h=document.createElement("h3");h.textContent=x.question;const p=document.createElement("p");p.textContent=x.answer;const edit=document.createElement("button");edit.type="button";edit.textContent="Edit";edit.onclick=()=>{editingId=x.id;$("question").value=x.question;$("answer").value=x.answer;$("formTitle").textContent="Edit Flashcard";$("saveBtn").textContent="Update Card";$("cancelEditBtn").hidden=false};const del=document.createElement("button");del.type="button";del.textContent="Delete";del.onclick=async()=>{if(!confirm("Delete this flashcard?"))return;try{await api(API_URL+"/"+encodeURIComponent(x.id),{method:"DELETE"});await load();toast("Card deleted")}catch(e){toast(e.message)}};c.append(h,p,edit,del);$("cardList").append(c)});$("totalCount").textContent=flashcards.length;$("knownCount").textContent=flashcards.filter(x=>x.known===true).length;$("reviewCount").textContent=flashcards.filter(x=>x.known!==true).length;studyIds=shown.map(x=>x.id);if(currentIndex>=studyIds.length)currentIndex=0;showStudyCard()}
+function showStudyCard(){const card=flashcards.find(x=>String(x.id)===String(studyIds[currentIndex]));$("studyArea").replaceChildren();if(!card){$("cardPosition").textContent="0 / 0";$("progressBar").style.width="0%";const p=document.createElement("p");p.textContent="Add flashcards to start studying."; $("studyArea").append(p);return}$("cardPosition").textContent=(currentIndex+1)+" / "+studyIds.length;$("progressBar").style.width=((currentIndex+1)/studyIds.length*100)+"%";const box=document.createElement("button");box.type="button";box.className="study-card";box.textContent=isFlipped?card.answer:card.question;box.onclick=()=>{isFlipped=!isFlipped;showStudyCard()};$("studyArea").append(box);const prev=document.createElement("button");prev.type="button";prev.textContent="Previous";prev.onclick=()=>{currentIndex=(currentIndex-1+studyIds.length)%studyIds.length;isFlipped=false;showStudyCard()};const next=document.createElement("button");next.type="button";next.textContent="Next";next.onclick=()=>{currentIndex=(currentIndex+1)%studyIds.length;isFlipped=false;showStudyCard()};const known=document.createElement("button");known.type="button";known.textContent=card.known?"Mark for review":"Mark known";known.onclick=async()=>{try{await api(API_URL+"/"+encodeURIComponent(card.id),{method:"PUT",body:JSON.stringify({...card,known:!card.known})});await load()}catch(e){toast(e.message)}};$("studyArea").append(prev,next,known)}
+$("cardForm").onsubmit=async e=>{e.preventDefault();const payload={question:$("question").value.trim(),answer:$("answer").value.trim(),known:false};if(!payload.question||!payload.answer)return;try{await api(editingId!==null?API_URL+"/"+encodeURIComponent(editingId):API_URL,{method:editingId!==null?"PUT":"POST",body:JSON.stringify(payload)});reset();await load();toast("Flashcard saved to database")}catch(err){toast("Save failed: "+err.message)}};
+function reset(){$("cardForm").reset();editingId=null;$("formTitle").textContent="Create Flashcard";$("saveBtn").textContent="Save Card";$("cancelEditBtn").hidden=true}
+$("cancelEditBtn").onclick=reset;$("searchInput").oninput=render;$("shuffleBtn").onclick=()=>{studyIds.sort(()=>Math.random()-.5);currentIndex=0;isFlipped=false;showStudyCard()};$("exportBtn").onclick=()=>{const b=new Blob([JSON.stringify(flashcards,null,2)],{type:"application/json"}),u=URL.createObjectURL(b),a=document.createElement("a");a.href=u;a.download="flashcards.json";a.click();URL.revokeObjectURL(u)};$("importBtn").onclick=()=>$("importFile").click();$("importFile").onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const data=JSON.parse(await f.text());if(!Array.isArray(data))throw new Error("JSON must contain an array");for(const c of data){if(c.question&&c.answer)await api(API_URL,{method:"POST",body:JSON.stringify({question:String(c.question),answer:String(c.answer),known:!!c.known})})}await load();toast("Import complete")}catch(err){toast("Import failed: "+err.message)}finally{e.target.value=""}};
+const side=$("sidebar"),back=$("backdrop"),toggle=$("menuToggle");toggle.onclick=()=>{const o=side.classList.toggle("open");back.classList.toggle("open",o)};back.onclick=()=>{side.classList.remove("open");back.classList.remove("open")};load();
+</script>
+</body>
+</html>

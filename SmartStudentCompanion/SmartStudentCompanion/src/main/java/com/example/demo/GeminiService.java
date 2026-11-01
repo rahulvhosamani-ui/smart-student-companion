@@ -27,7 +27,7 @@ public class GeminiService {
     @Value("${gemini.api.key:}")
     private String apiKey;
 
-    @Value("${gemini.api.model:gemini-2.5-flash}")
+    @Value("${gemini.api.model:gemini-3.5-flash-lite}")
     private String model;
 
     private final RestTemplate restTemplate;
@@ -174,12 +174,15 @@ public class GeminiService {
         } catch (HttpStatusCodeException e) {
             int status = e.getStatusCode().value();
             String reason = switch (status) {
-                case 401, 403 -> "The Gemini API key is invalid or does not have access. Check GEMINI_API_KEY and enable the Generative Language API.";
+                case 400, 401, 403 -> "Gemini rejected this API key or request. Check that the key is valid and allowed to use the Gemini API.";
                 case 404 -> "The configured Gemini model was not found. Check GEMINI_API_MODEL.";
                 case 429 -> "The Gemini API quota or rate limit has been reached. Check the project's Gemini quota and try again later.";
                 default -> "Gemini could not generate notes (upstream HTTP " + status + "). Check the Gemini service configuration and try again.";
             };
             throw new IllegalStateException(reason);
+        } catch (ResourceAccessException e) {
+            throw new IllegalStateException(
+                    "The app could not connect to Gemini. Check your internet connection or network restrictions and try again.");
         } catch (IllegalStateException
                 | IllegalArgumentException e) {
             throw e;
