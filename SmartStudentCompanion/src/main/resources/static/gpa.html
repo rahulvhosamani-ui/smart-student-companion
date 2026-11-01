@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GPA Tracker | Smart Student Companion</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+:root {
+    --bg: #121214;
+    --panel: #1e1e24;
+    --surface: #2a2a35;
+    --green: #52b788;
+    --green-dark: #40916c;
+    --purple: #9b8afb;
+    --text: #fff;
+    --muted: #bdbdbd;
+    --border: #393943;
+    --red: #ff7777;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+}
+
+button, input, select {
+    font: inherit;
+}
+
+button {
+    cursor: pointer;
+}
+
+.layout {
+    display: flex;
+    min-height: 100vh;
+}
+
+.sidebar {
+    width: 250px;
+    flex-shrink: 0;
+    background: var(--panel);
+    border-right: 1px solid var(--border);
+    padding: 24px 16px;
+}
+
+.logo {
+    text-align: center;
+    color: var(--green);
+    margin-bottom: 30px;
+    font-size: 22px;
+}
+
+.menu {
+    list-style: none;
+}
+
+.menu li {
+    margin: 7px 0;
+}
+
+.menu a {
+    display: block;
+    padding: 12px;
+    color: var(--text);
+    text-decoration: none;
+    border-radius: 8px;
+    transition: .2s;
+}
+
+.menu a:hover,
+.menu a.active {
+    background: var(--surface);
+    color: var(--green);
+}
+
+.main {
+    flex: 1;
+    min-width: 0;
+    padding: 25px;
+}
+
+.topbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.menu-toggle {
+    display: none;
+    padding: 10px 13px;
+    color: var(--green);
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+}
+
+.subtitle {
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 23px;
+    margin-bottom: 20px;
+}
+
+h1 {
+    color: var(--green);
+    font-size: 27px;
+    margin-bottom: 8px;
+}
+
+h2 {
+    color: var(--green);
+    font-size: 19px;
+    margin-bottom: 16px;
+}
+
+h3 {
+    font-size: 15px;
+    margin-bottom: 12px;
+}
+
+.stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.stat-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 20px;
+    border-radius: 12px;
+}
+
+.stat-label {
+    color: var(--muted);
+    font-size: 13px;
+    margin-bottom: 10px;
+}
+
+.stat-value {
+    color: var(--green);
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.stat-note {
+    color: var(--muted);
+    font-size: 11px;
+    margin-top: 7px;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 13px;
+    margin: 18px 0;
+}
+
+.field label {
+    display: block;
+    color: var(--muted);
+    font-size: 13px;
+    margin-bottom: 8px;
+}
+
+input, select {
+    width: 100%;
+    min-width: 0;
+    padding: 12px;
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    outline: none;
+}
+
+input:focus, select:focus {
+    border-color: var(--green);
+}
+
+input::placeholder {
+    color: #9999a5;
+}
+
+.btn {
+    padding: 11px 15px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    font-size: 13px;
+    font-weight: bold;
+    transition: .2s;
+}
+
+.btn-primary {
+    background: var(--green);
+    color: #121214;
+}
+
+.btn-primary:hover {
+    background: var(--green-dark);
+    color: white;
+}
+
+.btn-secondary {
+    background: var(--surface);
+    color: var(--text);
+    border-color: var(--border);
+}
+
+.btn-secondary:hover {
+    color: var(--green);
+    border-color: var(--green);
+}
+
+.btn-danger {
+    background: transparent;
+    color: var(--red);
+    border-color: #744149;
+}
+
+.btn-danger:hover {
+    background: #382329;
+}
+
+.form-actions, .toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.toolbar {
+    margin: 18px 0;
+}
+
+.toolbar input {
+    flex: 1;
+    min-width: 180px;
+}
+
+.message {
+    font-size: 13px;
+    line-height: 1.5;
+    margin-top: 12px;
+    color: var(--muted);
+}
+
+.message.error {
+    color: var(--red);
+}
+
+.gpa-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 13px;
+}
+
+.gpa-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 11px;
+    padding: 17px;
+}
+
+.gpa-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.semester {
+    color: var(--green);
+    font-weight: bold;
+}
+
+.record-status {
+    font-size: 11px;
+    color: var(--muted);
+}
+
+.gpa-values {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.gpa-value {
+    padding: 12px;
+    background: #22222a;
+    border-radius: 8px;
+}
+
+.gpa-value span {
+    display: block;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 7px;
+}
+
+.gpa-value strong {
+    font-size: 21px;
+    color: var(--green);
+}
+
+.gpa-item-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.gpa-item-actions button {
+    padding: 8px 11px;
+}
+
+.graph-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+}
+
+.graph-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px;
+    min-width: 0;
+}
+
+.chart-container {
+    position: relative;
+    height: 280px;
+    width: 100%;
+}
+
+.empty {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 35px 15px;
+    color: var(--muted);
+    line-height: 1.7;
+}
+
+.empty-icon {
+    font-size: 35px;
+    margin-bottom: 10px;
+}
+
+.backdrop {
+    display: none;
+}
+
+@media (max-width: 1050px) {
+    .graph-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 850px) {
+    .sidebar {
+        position: fixed;
+        z-index: 20;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        overflow-y: auto;
+        transform: translateX(-100%);
+        transition: transform .25s;
+    }
+
+    .sidebar.open {
+        transform: translateX(0);
+    }
+
+    .backdrop.show {
+        display: block;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,.65);
+        z-index: 19;
+    }
+
+    .menu-toggle {
+        display: block;
+    }
+
+    .main {
+        padding: 13px;
+    }
+
+    .stats {
+        gap: 9px;
+    }
+
+    .stat-card {
+        padding: 14px;
+    }
+
+    .stat-value {
+        font-size: 23px;
+    }
+
+    .gpa-list {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 560px) {
+    .stats {
+        grid-template-columns: 1fr;
+    }
+
+    .stat-card {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+    }
+
+    .stat-label {
+        margin: 0;
+    }
+
+    .stat-note {
+        display: none;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .panel {
+        padding: 16px;
+    }
+
+    h1 {
+        font-size: 23px;
+    }
+
+    .chart-container {
+        height: 240px;
+    }
+
+    .toolbar button {
+        flex: 1;
+    }
+}
+</style>
+</head>
+
+<body>
+<div class="layout">
+
+<aside class="sidebar" id="sidebar">
+    <h2 class="logo">🎓 Smart Student</h2>
+    <ul class="menu">
+        <li><a href="dashboard.html">🏠 Dashboard</a></li>
+        <li><a href="notes.html">📚 Notes</a></li>
+        <li><a href="assignments.html">📝 Assignments</a></li>
+        <li><a href="attendance.html">📅 Attendance</a></li>
+        <li><a class="active" href="gpa.html">📊 GPA Tracker</a></li>
+        <li><a href="reminders.html">⏰ Reminders</a></li>
+        <li><a href="ainotes.html">🤖 AI Notes</a></li>
+        <li><a href="flashcards.html">📖 Flashcards</a></li>
+        <li><a href="chatbot.html">🤖 AI Assistant</a></li>
+    </ul>
+    <a href="/logout" class="logout" data-logout style="display:block;margin:18px 10px 0;padding:12px;text-align:center;background:#ff4d4d;color:white;border-radius:8px;text-decoration:none;font-weight:700">Logout</a>
+</aside>
+
+<div class="backdrop" id="backdrop"></div>
+
+<main class="main">
+
+    <div class="topbar">
+        <button class="menu-toggle" id="menuToggle"
+                aria-label="Open navigation">☰</button>
+        <span class="subtitle">Your academic performance at a glance</span>
+    </div>
+
+    <section class="panel">
+        <h1>📊 GPA Tracker</h1>
+        <p class="subtitle">
+            Track semester SGPA, current CGPA, and your academic progress.
+        </p>
+    </section>
+
+    <section class="stats">
+        <div class="stat-card">
+            <div>
+                <div class="stat-label">Latest SGPA</div>
+                <div class="stat-note">Most recent recorded semester</div>
+            </div>
+            <div class="stat-value" id="latestSgpa">—</div>
+        </div>
+
+        <div class="stat-card">
+            <div>
+                <div class="stat-label">Current CGPA</div>
+                <div class="stat-note">Latest recorded cumulative GPA</div>
+            </div>
+            <div class="stat-value" id="latestCgpa">—</div>
+        </div>
+
+        <div class="stat-card">
+            <div>
+                <div class="stat-label">Semesters Recorded</div>
+                <div class="stat-note">Out of 8 semesters</div>
+            </div>
+            <div class="stat-value" id="semesterCount">0/8</div>
+        </div>
+    </section>
+
+    <section class="panel" id="formPanel">
+        <h2 id="formTitle">➕ Add Semester GPA</h2>
+
+        <form id="gpaForm">
+            <div class="form-grid">
+                <div class="field">
+                    <label for="semester">Semester</label>
+                    <select id="semester" required>
+                        <option value="">Choose semester</option>
+                        <option value="1">Semester 1</option>
+                        <option value="2">Semester 2</option>
+                        <option value="3">Semester 3</option>
+                        <option value="4">Semester 4</option>
+                        <option value="5">Semester 5</option>
+                        <option value="6">Semester 6</option>
+                        <option value="7">Semester 7</option>
+                        <option value="8">Semester 8</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label for="sgpa">SGPA (0–10)</label>
+                    <input type="number" id="sgpa"
+                        placeholder="Example: 8.25"
+                        min="0" max="10" step="0.01" required>
+                </div>
+
+                <div class="field">
+                    <label for="cgpa">CGPA (0–10)</label>
+                    <input type="number" id="cgpa"
+                        placeholder="Example: 8.10"
+                        min="0" max="10" step="0.01" required>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button class="btn btn-primary" id="saveBtn" type="submit">
+                    💾 Save GPA
+                </button>
+                <button class="btn btn-secondary" id="cancelBtn"
+                        type="button" hidden>
+                    Cancel Edit
+                </button>
+            </div>
+
+            <p class="message" id="formMessage" role="status"></p>
+        </form>
+    </section>
+
+    <section class="panel">
+        <h2>📚 Semester Records</h2>
+        <p class="subtitle">
+            Search your records, edit a semester, or export your GPA data.
+        </p>
+
+        <div class="toolbar">
+            <input id="searchInput" type="search"
+                placeholder="Search semester or GPA...">
+
+            <button class="btn btn-secondary" id="exportBtn" type="button">
+                ⬇ Export CSV
+            </button>
+
+            <button class="btn btn-secondary" id="refreshBtn" type="button">
+                ↻ Refresh
+            </button>
+        </div>
+
+        <div class="gpa-list" id="gpaList">
+            <div class="empty">Loading GPA records...</div>
+        </div>
+    </section>
+
+    <section class="panel">
+        <h2>📈 GPA Performance</h2>
+        <p class="subtitle">
+            Compare semester performance and cumulative GPA.
+        </p>
+
+        <div class="graph-grid">
+            <div class="graph-card">
+                <h3>Semester-wise SGPA</h3>
+                <div class="chart-container">
+                    <canvas id="sgpaChart"></canvas>
+                </div>
+            </div>
+
+            <div class="graph-card">
+                <h3>SGPA vs CGPA</h3>
+                <div class="chart-container">
+                    <canvas id="cgpaChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <p class="message" id="chartMessage"></p>
+    </section>
+
+</main>
+</div>
+
+
+<script src="/csrf.js"></script>
+<script>
+"use strict";
+const API_URL="/api/gpa",$=id=>document.getElementById(id);let gpas=[],sgpaChart=null,cgpaChart=null,editingSemester=null;
+async function api(url=API_URL,opts={}){const r=await fetch(url,{...opts,headers:{"Content-Type":"application/json",...(opts.headers||{})}});if(!r.ok)throw new Error("API request failed: "+r.status);if(r.status===204)return null;const t=await r.text();return t?JSON.parse(t):null}
+function msg(t,e=false){$("formMessage").textContent=t;$("formMessage").classList.toggle("error",e)}
+function arr(d){return Array.isArray(d)?d:Array.isArray(d?.data)?d.data:[]}
+function render(){const q=$("searchInput").value.toLowerCase();const shown=[...gpas].sort((a,b)=>Number(a.semester)-Number(b.semester)).filter(x=>("semester "+x.semester+" "+x.sgpa+" "+x.cgpa).toLowerCase().includes(q));$("gpaList").replaceChildren();shown.forEach(x=>{const item=document.createElement("article");item.className="gpa-item";const h=document.createElement("h3");h.textContent="Semester "+x.semester;const p=document.createElement("p");p.textContent="SGPA: "+Number(x.sgpa).toFixed(2)+" | CGPA: "+Number(x.cgpa).toFixed(2);const edit=document.createElement("button");edit.type="button";edit.textContent="Edit";edit.onclick=()=>{editingSemester=x.semester;$("semester").value=String(x.semester);$("semester").disabled=true;$("sgpa").value=x.sgpa;$("cgpa").value=x.cgpa;$("formTitle").textContent="Edit Semester "+x.semester;$("saveBtn").textContent="Save Changes";$("cancelBtn").hidden=false};const del=document.createElement("button");del.type="button";del.textContent="Delete";del.onclick=async()=>{if(!confirm("Delete GPA for semester "+x.semester+"?"))return;try{await api(API_URL+"/"+encodeURIComponent(x.semester),{method:"DELETE"});await load();msg("GPA record deleted.")}catch(e){msg("Delete failed: "+e.message,true)}};item.append(h,p,edit,del);$("gpaList").append(item)});const sorted=[...gpas].sort((a,b)=>Number(a.semester)-Number(b.semester));$("semesterCount").textContent=sorted.length;$("latestSgpa").textContent=sorted.length?Number(sorted[sorted.length-1].sgpa).toFixed(2):"--";$("latestCgpa").textContent=sorted.length?Number(sorted[sorted.length-1].cgpa).toFixed(2):"--";if(typeof Chart==="undefined"){$("chartMessage").textContent="Chart.js did not load.";return}if(sgpaChart)sgpaChart.destroy();if(cgpaChart)cgpaChart.destroy();const labels=sorted.map(x=>"Sem "+x.semester);sgpaChart=new Chart($("sgpaChart"),{type:"line",data:{labels,datasets:[{label:"SGPA",data:sorted.map(x=>Number(x.sgpa)),borderColor:"#52b788",backgroundColor:"#52b788",tension:.25}]},options:{responsive:true,scales:{y:{min:0,max:10}}}});cgpaChart=new Chart($("cgpaChart"),{type:"line",data:{labels,datasets:[{label:"CGPA",data:sorted.map(x=>Number(x.cgpa)),borderColor:"#4dabf7",backgroundColor:"#4dabf7",tension:.25}]},options:{responsive:true,scales:{y:{min:0,max:10}}}});$("chartMessage").textContent=sorted.length?"GPA charts updated from saved records.":"Add a GPA record to display charts."}
+async function load(){try{gpas=arr(await api());render()}catch(e){msg("Could not load GPA. Check GET /api/gpa. "+e.message,true)}}
+$("gpaForm").onsubmit=async e=>{e.preventDefault();const semester=Number($("semester").value),sgpa=Number($("sgpa").value),cgpa=Number($("cgpa").value);if(!Number.isInteger(semester)||semester<1||sgpa<0||sgpa>10||cgpa<0||cgpa>10)return msg("Enter valid semester and GPA values from 0 to 10.",true);const payload={semester,sgpa,cgpa};try{if(editingSemester!==null){await api(API_URL+"/"+encodeURIComponent(editingSemester),{method:"PUT",body:JSON.stringify(payload)})}else{if(gpas.some(x=>Number(x.semester)===semester))return msg("This semester already exists. Edit its record instead.",true);await api(API_URL,{method:"POST",body:JSON.stringify(payload)})}reset();await load();msg("GPA saved to database.")}catch(err){msg("Save failed: "+err.message,true)}};
+function reset(){$("gpaForm").reset();$("semester").disabled=false;editingSemester=null;$("formTitle").textContent="Add GPA Record";$("saveBtn").textContent="Save GPA";$("cancelBtn").hidden=true}
+$("cancelBtn").onclick=reset;$("refreshBtn").onclick=load;$("searchInput").oninput=render;$("exportBtn").onclick=()=>{const blob=new Blob([JSON.stringify(gpas,null,2)],{type:"application/json"}),u=URL.createObjectURL(blob),a=document.createElement("a");a.href=u;a.download="gpa-records.json";a.click();URL.revokeObjectURL(u)};
+const side=$("sidebar"),back=$("backdrop"),toggle=$("menuToggle");toggle.onclick=()=>{const o=side.classList.toggle("open");back.classList.toggle("open",o)};back.onclick=()=>{side.classList.remove("open");back.classList.remove("open")};load();
+</script>
+</body>
+</html>

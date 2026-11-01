@@ -6,14 +6,14 @@ Spring Boot 3.3, Java 17, Thymeleaf, Spring Security, and MySQL application.
 
 1. Install Java 17 or later and start a local MySQL server.
 2. Create a database named `student_companion_db` (or set `DB_URL` to another database).
-3. Set `DB_USERNAME` and `DB_PASSWORD` in your terminal or IDE run configuration. The defaults use the local MySQL `root` account with an empty password; no database password is stored in this project.
+3. Set `DB_USERNAME` and `DB_PASSWORD` in your terminal or IDE run configuration. The defaults use the local MySQL `root` account with an empty password; set `DB_PASSWORD` if your local account uses one.
 4. Start the app from this folder:
 
    ```powershell
    .\mvnw.cmd spring-boot:run
    ```
 
-5. Open `http://localhost:8081/login` and create an account at `/register`.
+5. Open `http://localhost:8080/login` and create an account at `/register`.
 
 The local profile is active by default. The registration flow stores BCrypt password hashes. Do not commit passwords, API keys, or other secrets.
 
@@ -27,11 +27,11 @@ Attach a Railway MySQL service. In the Spring Boot service variables, configure:
 - `DB_PASSWORD=<Railway MySQL password>`
 - `GEMINI_API_KEY=<key>` if AI features are used
 
-Build with the included Dockerfile. The server listens on Railway's `PORT` value, with `8081` as the local default.
+Build with the included Dockerfile. The server listens on Railway's `PORT` value, with `8080` as the local default.
 
 To create an initial student account automatically, set both `INITIAL_STUDENT_EMAIL` and `INITIAL_STUDENT_PASSWORD`. Remove those variables after the account is created if they are no longer needed.
 
-The AI Notes generator and AI Assistant both require a valid, enabled Gemini API key. For local PowerShell runs, set `GEMINI_API_KEY` in the same terminal before starting the app. For Railway, add it as a service variable and redeploy. Never put the key in source files or screenshots.
+The AI Notes generator and AI Assistant both require a valid, enabled Gemini API key. For local PowerShell runs, set `GEMINI_API_KEY` in the same terminal before starting the app. For Railway, add it as a service variable and redeploy after code changes. A missing key returns HTTP 503; invalid key/model, quota, and upstream Gemini errors return a short actionable explanation. Never put the key in source files or screenshots.
 
 ## Notes
 

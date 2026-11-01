@@ -11,7 +11,7 @@ COPY . .
 RUN mvn clean package -DskipTests
 
 # Expose the internal port
-EXPOSE 8081
+EXPOSE 8080
 
 # Command to run the application
 ENTRYPOINT ["java", "-jar", "target/demo-0.0.1-SNAPSHOT.jar"]

@@ -218,17 +218,11 @@ public class AINoteController {
         try {
             content = geminiService.askGemini(prompt);
         } catch (IllegalStateException exception) {
-
-                exception.printStackTrace();
-
-                throw new ResponseStatusException(
-                        HttpStatus.BAD_GATEWAY,
-                        exception.getMessage());
-        } catch (Exception exception) {
-
-                exception.printStackTrace();
-
-                return null;
+            boolean missingKey = exception.getMessage() != null
+                    && exception.getMessage().contains("API key is not configured");
+            throw new ResponseStatusException(
+                    missingKey ? HttpStatus.SERVICE_UNAVAILABLE : HttpStatus.BAD_GATEWAY,
+                    exception.getMessage());
         }
 
         if (content == null

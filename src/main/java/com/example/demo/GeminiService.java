@@ -44,12 +44,6 @@ public class GeminiService {
     }
 
     public String askGemini(String question) {
-        System.out.println(
-                "API Key Present: "
-                + (apiKey != null && !apiKey.isBlank()));
-
-        System.out.println("Model: " + model);
-
         if (apiKey == null || apiKey.isBlank()) {
             throw new IllegalStateException(
                     "Gemini API key is not configured.");
@@ -176,20 +170,17 @@ public class GeminiService {
             return String.join("\n", generatedTexts);
 
         } catch (HttpStatusCodeException e) {
-
-                System.out.println("========== GEMINI ERROR ==========");
-                System.out.println("Status: " + e.getStatusCode());
-                System.out.println("Response: " + e.getResponseBodyAsString());
-                System.out.println("==================================");
-
-                throw new IllegalStateException(
-                        "Gemini API returned HTTP "
-                        + e.getStatusCode().value()
-                        + ". Response: "
-                        + e.getResponseBodyAsString());
+            int status = e.getStatusCode().value();
+            String reason = switch (status) {
+                case 401, 403 -> "The Gemini API key is invalid or does not have access. Check GEMINI_API_KEY and enable the Generative Language API.";
+                case 404 -> "The configured Gemini model was not found. Check GEMINI_API_MODEL.";
+                case 429 -> "The Gemini API quota or rate limit has been reached. Check the project's Gemini quota and try again later.";
+                default -> "Gemini could not generate notes (upstream HTTP " + status + "). Check the Gemini service configuration and try again.";
+            };
+            throw new IllegalStateException(reason);
         } catch (IllegalStateException
-                        | IllegalArgumentException e) {
-                throw e;
+                | IllegalArgumentException e) {
+            throw e;
 
         } catch (Exception e) {
 
