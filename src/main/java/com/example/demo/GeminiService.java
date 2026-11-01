@@ -27,7 +27,7 @@ public class GeminiService {
     @Value("${gemini.api.key:}")
     private String apiKey;
 
-    @Value("${gemini.api.model:gemini-2.5-flash}")
+    @Value("${gemini.api.model:gemini-3.5-flash-lite}")
     private String model;
 
     private final RestTemplate restTemplate;
@@ -173,12 +173,7 @@ public class GeminiService {
 
         } catch (HttpStatusCodeException e) {
             int status = e.getStatusCode().value();
-            String reason = switch (status) {
-                case 400, 401, 403 -> "Gemini rejected this API key or request. Check that the key is valid and allowed to use the Gemini API.";
-                case 404 -> "The configured Gemini model was not found. Check GEMINI_API_MODEL.";
-                case 429 -> "The Gemini API quota or rate limit has been reached. Check the project's Gemini quota and try again later.";
-                default -> "Gemini could not generate notes (upstream HTTP " + status + "). Check the Gemini service configuration and try again.";
-            };
+            String reason = explainGeminiError(status, e.getResponseBodyAsString());
             throw new IllegalStateException(reason);
         } catch (ResourceAccessException e) {
             throw new IllegalStateException(
@@ -193,5 +188,39 @@ public class GeminiService {
                     "An unexpected error occurred while processing "
                     + "the Gemini response.");
         }
+    }
+
+    private String explainGeminiError(int status, String responseBody) {
+        String providerMessage = "";
+        try {
+            providerMessage = objectMapper.readTree(responseBody)
+                    .path("error")
+                    .path("message")
+                    .asText("");
+        } catch (Exception ignored) {
+            // Use the HTTP status fallback if Gemini returned non-JSON text.
+        }
+
+        String lower = providerMessage.toLowerCase();
+        if (lower.contains("api key") && (lower.contains("invalid") || lower.contains("not valid"))) {
+            return "Gemini rejected the API key. Copy a fresh key from AI Studio and set GEMINI_API_KEY again.";
+        }
+        if (lower.contains("quota") || lower.contains("billing") || lower.contains("rate limit")) {
+            return "The Gemini project has reached a quota or billing limit. Check its quota in AI Studio.";
+        }
+        if ((lower.contains("api") && (lower.contains("disabled") || lower.contains("not been used") || lower.contains("not enabled")))
+                || lower.contains("generative language api")) {
+            return "Enable Gemini API access for the Google project that owns this key, then try again.";
+        }
+        if (lower.contains("model") && (lower.contains("permission") || lower.contains("not found") || lower.contains("not available"))) {
+            return "Gemini denied access to model " + model + ". Check the model setting and the project's model access.";
+        }
+
+        return switch (status) {
+            case 400, 401, 403 -> "Gemini rejected the request (HTTP " + status + "). Check the API key, project access, and model " + model + ".";
+            case 404 -> "The configured Gemini model was not found. Check GEMINI_API_MODEL.";
+            case 429 -> "The Gemini API quota or rate limit has been reached. Check the project's Gemini quota and try again later.";
+            default -> "Gemini could not generate notes (upstream HTTP " + status + "). Check the Gemini service configuration and try again.";
+        };
     }
 }
