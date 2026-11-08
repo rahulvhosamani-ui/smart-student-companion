@@ -289,6 +289,7 @@ textarea {
     .stat strong {font-size:22px}
 }
 </style>
+<link rel="stylesheet" href="/navigation.css">
 </head>
 
 <body>
@@ -313,7 +314,7 @@ textarea {
             <li><a href="chatbot.html">💬 AI Assistant</a></li>
         </ul>
     </nav>
-    <a href="/logout" class="logout" data-logout="true">Logout</a>
+    <a href="/logout" class="logout" data-logout>Logout</a>
 </aside>
 
 <main class="main">
@@ -383,6 +384,7 @@ textarea {
     </section>
 </main>
 
+<script src="/csrf.js"></script>
 <script>
 "use strict";
 
@@ -406,35 +408,11 @@ function showMessage(text, type = "success") {
     }, 5000);
 }
 
-function csrfHeaders() {
-    const match = document.cookie.match(/(?:^|;\s*)XSRF-TOKEN=([^;]+)/);
-    if (!match) return {};
-    try { return { "X-XSRF-TOKEN": decodeURIComponent(match[1]) }; }
-    catch (_) { return { "X-XSRF-TOKEN": match[1] }; }
-}
-
-
-document.querySelectorAll('[data-logout="true"]').forEach(link => {
-    link.addEventListener("click", async event => {
-        event.preventDefault();
-        try {
-            await fetch("/logout", {
-                method: "POST",
-                credentials: "same-origin",
-                headers: csrfHeaders()
-            });
-        } finally {
-            window.location.href = "/login?logout=true";
-        }
-    });
-});
-
 async function requestJSON(url, options = {}) {
     const response = await fetch(url, {
         credentials: "same-origin",
         ...options,
         headers: {
-            ...csrfHeaders(),
             "Accept": "application/json",
             ...(options.body ? {"Content-Type": "application/json"} : {}),
             ...options.headers
@@ -443,9 +421,21 @@ async function requestJSON(url, options = {}) {
 
     if (!response.ok) {
         const details = await response.text().catch(() => "");
+        let message = "";
+        try {
+            const problem = JSON.parse(details);
+            message = problem.detail || problem.message || problem.error || "";
+        } catch (_) {
+            message = details;
+        }
+        if (!message && response.status === 502) {
+            message = "The AI server could not reach Gemini. Check the server logs and confirm GEMINI_API_KEY is set in your hosting service, then redeploy.";
+        }
+        if (!message && response.status === 503) {
+            message = "AI notes are not configured yet. Add GEMINI_API_KEY to the server environment and restart the app.";
+        }
         throw new Error(
-            "Request failed (" + response.status + "). " +
-            details.slice(0, 250)
+            (message || ("Request failed (" + response.status + ")."))
         );
     }
 

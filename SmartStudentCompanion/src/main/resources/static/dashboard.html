@@ -365,6 +365,7 @@ body.menu-open {
     overflow: hidden;
 }
 </style>
+<link rel="stylesheet" href="/navigation.css">
 </head>
 
 <body>
@@ -392,7 +393,7 @@ body.menu-open {
         </ul>
     </nav>
 
-    <a href="/logout" class="logout-btn" data-logout="true">Logout</a>
+    <a href="/logout" class="logout-btn" data-logout>Logout</a>
 </aside>
 
 <main class="content">
@@ -406,7 +407,7 @@ body.menu-open {
 
         <article class="card">
             <h3>Student Name</h3>
-            <div id="studentName" class="value">Rahul</div>
+            <div id="studentName" class="value">Loading...</div>
             <p class="subtext">Your account</p>
         </article>
 
@@ -463,8 +464,8 @@ body.menu-open {
     <section class="profile-card">
         <h2>👤 Student Profile</h2>
         <div class="profile-details">
-            <p><strong>Name:</strong> <span id="profileName">Rahul</span></p>
-            <p><strong>Email:</strong> <span id="profileEmail">rahulvhosamani@gmail.com</span></p>
+            <p><strong>Name:</strong> <span id="profileName">Loading...</span></p>
+            <p><strong>Email:</strong> <span id="profileEmail">Loading...</span></p>
         </div>
     </section>
 
@@ -491,6 +492,7 @@ body.menu-open {
 
 </main>
 
+<script src="/csrf.js"></script>
 <script>
 "use strict";
 
@@ -522,43 +524,20 @@ function setText(id, value) {
     if (element) element.textContent = value;
 }
 
-function csrfHeaders() {
-    const match = document.cookie.match(/(?:^|;\s*)XSRF-TOKEN=([^;]+)/);
-    if (!match) return {};
-    try { return { "X-XSRF-TOKEN": decodeURIComponent(match[1]) }; }
-    catch (_) { return { "X-XSRF-TOKEN": match[1] }; }
-}
-
-
-document.querySelectorAll('[data-logout="true"]').forEach(link => {
-    link.addEventListener("click", async event => {
-        event.preventDefault();
-        try {
-            await fetch("/logout", {
-                method: "POST",
-                credentials: "same-origin",
-                headers: csrfHeaders()
-            });
-        } finally {
-            window.location.href = "/login?logout=true";
-        }
-    });
-});
-
 async function fetchJSON(url) {
     const response = await fetch(url, {
         method: "GET",
         credentials: "same-origin",
-        headers: { ...csrfHeaders(), "Accept": "application/json" }
+        headers: { "Accept": "application/json" }
     });
 
+    const text = await response.text();
+    let data = null;
+    try { data = text ? JSON.parse(text) : null; } catch (_) { data = text; }
     if (!response.ok) {
-        throw new Error(
-            url + " returned HTTP " + response.status
-        );
+        throw new Error((data && (data.error || data.message || data.detail)) || data || ("Request failed (" + response.status + "). Please try again."));
     }
-
-    return response.json();
+    return data;
 }
 
 function getArray(data) {
@@ -583,25 +562,34 @@ function validNumber(value, minimum, maximum) {
 /* Student profile */
 async function loadStudent() {
     try {
+        const student = await fetchJSON(API.student);
 
-        const student = await fetchJSON("/students/profile");
+        if (!student || typeof student !== "object") {
+            throw new Error("Student profile was empty.");
+        }
 
-        setText("studentName", student.name);
-        setText("profileName", student.name);
-        setText("profileEmail", student.email);
-        setText("welcomeMessage", "Welcome, " + student.name + "!");
+        const name = String(
+            student.name ||
+            student.fullName ||
+            student.username ||
+            "Student"
+        );
+
+        const email = String(student.email || "Not available");
+
+        setText("studentName", name);
+        setText("welcomeMessage", "Welcome, " + name + "!");
+        setText("profileName", name);
+        setText("profileEmail", email);
 
         return true;
-
     } catch (error) {
+        console.error("Student profile error:", error);
 
-        console.error(error);
-
-        // Fallback
-        setText("studentName", "Student");
-        setText("profileName", "Student");
-        setText("profileEmail", "Not Available");
+        setText("studentName", "Unavailable");
         setText("welcomeMessage", "Welcome, Student!");
+        setText("profileName", "Unable to load");
+        setText("profileEmail", "Unable to load");
 
         return false;
     }

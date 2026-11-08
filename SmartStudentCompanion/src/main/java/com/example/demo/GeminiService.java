@@ -1,46 +1,98 @@
 package com.example.demo;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpStatusCodeException;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 @Service
 public class GeminiService {
 
-    @Value("${gemini.api.key}")
+    // Allow the app to start when AI is not configured. AI requests report a
+    // clear setup error from askGemini instead of preventing Spring startup.
+    @Value("${gemini.api.key:}")
     private String apiKey;
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    @Value("${gemini.api.model:gemini-3.5-flash-lite}")
+    private String model;
+
+    private final RestTemplate restTemplate;
+    private final ObjectMapper objectMapper;
+
+    public GeminiService(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+
+        SimpleClientHttpRequestFactory factory =
+                new SimpleClientHttpRequestFactory();
+
+        factory.setConnectTimeout(10000);
+        factory.setReadTimeout(60000);
+
+        this.restTemplate = new RestTemplate(factory);
+    }
 
     public String askGemini(String question) {
+        if (apiKey == null || apiKey.isBlank()) {
+            throw new IllegalStateException(
+                    "Gemini API key is not configured.");
+        }
+
+        if (question == null || question.isBlank()) {
+            throw new IllegalArgumentException(
+                    "Question cannot be empty.");
+        }
+
+        if (question.length() > 10000) {
+            throw new IllegalArgumentException(
+                    "Question cannot exceed 10000 characters.");
+        }
+
+        String url =
+                "https://generativelanguage.googleapis.com/v1beta/models/"
+                + model + ":generateContent";
 
         try {
-
-            String url =
-                    "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key="
-                            + apiKey;
-
-            String requestBody =
-                    """
-                    {
-                      "contents": [
-                        {
-                          "parts": [
-                            {
-                              "text": "%s"
-                            }
-                          ]
-                        }
-                      ]
-                    }
-                    """.formatted(question.replace("\"", "\\\""));
+            Map<String, Object> requestBody = Map.of(
+                    "contents", List.of(
+                            Map.of(
+                                    "role", "user",
+                                    "parts", List.of(
+                                            Map.of(
+                                                    "text",
+                                                    question.trim()
+                                            )
+                                    )
+                            )
+                    ),
+                    "generationConfig", Map.of(
+                            "temperature", 0.7,
+                            "maxOutputTokens", 2048
+                    )
+            );
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.set("x-goog-api-key", apiKey.trim());
+
+            String json =
+                    objectMapper.writeValueAsString(requestBody);
 
             HttpEntity<String> entity =
-                    new HttpEntity<>(requestBody, headers);
+                    new HttpEntity<>(json, headers);
 
             ResponseEntity<String> response =
                     restTemplate.exchange(
@@ -50,35 +102,125 @@ public class GeminiService {
                             String.class
                     );
 
-            String body = response.getBody();
+            String responseBody = response.getBody();
 
-            if (body == null) {
-                return "No response from Gemini.";
+            if (responseBody == null || responseBody.isBlank()) {
+                throw new IllegalStateException(
+                        "Gemini returned an empty response.");
             }
 
-            int start =
-                    body.indexOf("\"text\": \"");
+            JsonNode root =
+                    objectMapper.readTree(responseBody);
 
-            if (start != -1) {
+            // Check whether Gemini returned an API error.
+            JsonNode errorNode = root.path("error");
 
-                start += 9;
+            if (!errorNode.isMissingNode()
+                    && !errorNode.isNull()) {
+                String errorMessage =
+                        errorNode.path("message").asText(
+                                "Unknown Gemini API error.");
 
-                int end =
-                        body.indexOf("\"", start);
+                throw new IllegalStateException(
+                        "Gemini API error: " + errorMessage);
+            }
 
-                if (end > start) {
-                    return body.substring(start, end)
-                            .replace("\\n", "\n");
+            JsonNode candidates = root.path("candidates");
+
+            if (!candidates.isArray()
+                    || candidates.isEmpty()) {
+                throw new IllegalStateException(
+                        "Gemini did not return any response candidates.");
+            }
+
+            JsonNode candidate = candidates.get(0);
+
+            JsonNode content = candidate.path("content");
+            JsonNode parts = content.path("parts");
+
+            List<String> generatedTexts = new ArrayList<>();
+
+            if (parts.isArray()) {
+                for (JsonNode part : parts) {
+                    JsonNode textNode = part.path("text");
+
+                    if (textNode.isTextual()
+                            && !textNode.asText().isBlank()) {
+                        generatedTexts.add(textNode.asText());
+                    }
                 }
             }
 
-            return body;
+            if (generatedTexts.isEmpty()) {
+                String finishReason =
+                        candidate.path("finishReason").asText("");
+
+                if ("SAFETY".equalsIgnoreCase(finishReason)) {
+                    throw new IllegalStateException(
+                            "Gemini could not answer this question "
+                            + "because it was blocked by safety filters.");
+                }
+
+                throw new IllegalStateException(
+                        "Gemini returned no generated text. "
+                        + "Finish reason: "
+                        + (finishReason.isBlank()
+                                ? "unknown"
+                                : finishReason));
+            }
+
+            return String.join("\n", generatedTexts);
+
+        } catch (HttpStatusCodeException e) {
+            int status = e.getStatusCode().value();
+            String reason = explainGeminiError(status, e.getResponseBodyAsString());
+            throw new IllegalStateException(reason);
+        } catch (ResourceAccessException e) {
+            throw new IllegalStateException(
+                    "The app could not connect to Gemini. Check your internet connection or network restrictions and try again.");
+        } catch (IllegalStateException
+                | IllegalArgumentException e) {
+            throw e;
 
         } catch (Exception e) {
 
-            e.printStackTrace();
-
-            return "Error: " + e.getMessage();
+            throw new IllegalStateException(
+                    "An unexpected error occurred while processing "
+                    + "the Gemini response.");
         }
+    }
+
+    private String explainGeminiError(int status, String responseBody) {
+        String providerMessage = "";
+        try {
+            providerMessage = objectMapper.readTree(responseBody)
+                    .path("error")
+                    .path("message")
+                    .asText("");
+        } catch (Exception ignored) {
+            // Use the HTTP status fallback if Gemini returned non-JSON text.
+        }
+
+        String lower = providerMessage.toLowerCase();
+        if (lower.contains("api key") && (lower.contains("invalid") || lower.contains("not valid"))) {
+            return "Gemini rejected the API key. Copy a fresh key from AI Studio and set GEMINI_API_KEY again.";
+        }
+        if (lower.contains("quota") || lower.contains("billing") || lower.contains("rate limit")) {
+            return "The Gemini project has reached a quota or billing limit. Check its quota in AI Studio.";
+        }
+        if ((lower.contains("api") && (lower.contains("disabled") || lower.contains("not been used") || lower.contains("not enabled")))
+                || lower.contains("generative language api")) {
+            return "Enable Gemini API access for the Google project that owns this key, then try again.";
+        }
+        if (lower.contains("model") && (lower.contains("permission") || lower.contains("not found") || lower.contains("not available"))) {
+            return "Gemini denied access to model " + model + ". Check the model setting and the project's model access.";
+        }
+
+        return switch (status) {
+            case 400, 401, 403 -> "Gemini rejected the request (HTTP " + status + "). Check the API key, project access, and model " + model + ".";
+            case 404 -> "The configured Gemini model was not found. Check GEMINI_API_MODEL.";
+            case 429 -> "The Gemini API quota or rate limit has been reached. Check the project's Gemini quota and try again later.";
+            default -> "Gemini could not generate notes (upstream HTTP " + status + "). Check the Gemini service configuration and try again.";
+        };
     }
 }

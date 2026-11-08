@@ -1,14 +1,19 @@
 package com.example.demo;
 
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.*;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
-import java.util.List;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/students")
-@CrossOrigin(origins = "*")
 public class StudentController {
 
     private final StudentRepository studentRepository;
@@ -17,88 +22,48 @@ public class StudentController {
         this.studentRepository = studentRepository;
     }
 
-    // Get all students
-    @GetMapping
-    public List<Student> getAllStudents() {
-        return studentRepository.findAll();
-    }
-
-    // Get currently logged-in student's profile
+    /**
+     * Returns the profile of the currently authenticated student.
+     * Endpoint: GET /students/profile
+     */
     @GetMapping("/profile")
-    public ResponseEntity<Student> getProfile(Authentication authentication) {
+    public ResponseEntity<Map<String, Object>> getProfile(
+            Authentication authentication) {
 
+        // Verify that a real user is authenticated.
+        if (authentication == null
+                || !authentication.isAuthenticated()
+                || authentication instanceof AnonymousAuthenticationToken) {
+
+            throw new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED,
+                    "Please log in to view your profile."
+            );
+        }
+
+        // Use the authenticated email, never an email supplied by the client.
         String email = authentication.getName();
 
-        return studentRepository.findByEmail(email)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
-    }
+        if (email == null || email.isBlank()) {
+            throw new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED,
+                    "Authenticated student email is unavailable."
+            );
+        }
 
-    // Get student by ID
-    @GetMapping("/{id}")
-    public ResponseEntity<Student> getStudentById(@PathVariable Long id) {
+        Student student = studentRepository
+                .findByEmail(email.trim().toLowerCase(java.util.Locale.ROOT))
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Student profile not found."
+                ));
 
-        return studentRepository.findById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
-    }
+        // Return only safe profile fields; never expose the password.
+        Map<String, Object> profile = new LinkedHashMap<>();
+        profile.put("id", student.getId());
+        profile.put("name", student.getName());
+        profile.put("email", student.getEmail());
 
-    // Create student
-    @PostMapping
-    public Student createStudent(@RequestBody Student student) {
-
-        return studentRepository.save(student);
-    }
-
-    // Update student
-    @PutMapping("/{id}")
-    public ResponseEntity<Student> updateStudent(
-            @PathVariable Long id,
-            @RequestBody Student updatedStudent) {
-
-        return studentRepository.findById(id)
-                .map(student -> {
-
-                    student.setName(updatedStudent.getName());
-                    student.setEmail(updatedStudent.getEmail());
-
-                    if (updatedStudent.getPassword() != null &&
-                            !updatedStudent.getPassword().isBlank()) {
-
-                        student.setPassword(updatedStudent.getPassword());
-                    }
-
-                    return ResponseEntity.ok(
-                            studentRepository.save(student)
-                    );
-                })
-                .orElse(ResponseEntity.notFound().build());
-    }
-
-    // Delete student
-    @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteStudent(
-            @PathVariable Long id) {
-
-        return studentRepository.findById(id)
-                .map(student -> {
-
-                    studentRepository.delete(student);
-
-                    return ResponseEntity.ok(
-                            "Student deleted successfully"
-                    );
-                })
-                .orElse(ResponseEntity.notFound().build());
-    }
-
-    // Get student by email
-    @GetMapping("/profile/{email}")
-    public ResponseEntity<Student> getProfileByEmail(
-            @PathVariable String email) {
-
-        return studentRepository.findByEmail(email)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        return ResponseEntity.ok(profile);
     }
 }

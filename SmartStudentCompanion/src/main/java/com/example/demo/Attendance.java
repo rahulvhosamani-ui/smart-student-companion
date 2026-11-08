@@ -1,22 +1,78 @@
 package com.example.demo;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.*;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 @Entity
-@Table(name = "attendance")
+@Table(
+    name = "attendance",
+    indexes = {
+        @Index(name = "idx_attendance_student", columnList = "student_id"),
+        @Index(
+            name = "idx_attendance_subject",
+            columnList = "subject"
+        ),
+        @Index(
+            name = "idx_attendance_month",
+            columnList = "month"
+        )
+    }
+)
 public class Attendance {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotBlank(message = "Subject is required")
+    @Size(max = 100, message = "Subject cannot exceed 100 characters")
+    @Column(nullable = false, length = 100)
     private String subject;
 
-    private Double percentage;
+    @NotNull(message = "Attendance percentage is required")
+    @DecimalMin(value = "0.0", message = "Percentage cannot be below 0")
+    @DecimalMax(value = "100.0", message = "Percentage cannot exceed 100")
+    @Column(nullable = false)
+    private Double percentage = 0.0;
 
+    @NotBlank(message = "Month is required")
+    @Size(max = 20, message = "Month cannot exceed 20 characters")
+    @Column(nullable = false, length = 20)
     private String month;
 
+    @ManyToOne(fetch = FetchType.LAZY, optional = true)
+    @JoinColumn(name = "student_id", nullable = true)
+    private Student student;
+
+    @JsonIgnore
+    public Student getStudent() { return student; }
+    public void setStudent(Student student) { this.student = student; }
+
     public Attendance() {
+    }
+
+    public Attendance(String subject, Double percentage, String month) {
+        this.subject = subject;
+        this.percentage = percentage;
+        this.month = month;
+    }
+
+    @PrePersist
+    @PreUpdate
+    public void validateAttendance() {
+        if (subject != null) {
+            subject = subject.trim();
+        }
+
+        if (month != null) {
+            month = month.trim();
+        }
     }
 
     public Long getId() {

@@ -1,28 +1,40 @@
 package com.example.demo;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
+import jakarta.persistence.Table;
+
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Locale;
 
 @Entity
 @Table(name = "students")
 public class Student implements UserDetails {
 
+    private static final long serialVersionUID = 1L;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 100)
     private String name;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false, unique = true, length = 254)
     private String email;
 
-    @Column(nullable = false)
+    // Stores the BCrypt-encoded password, never plaintext.
+    @Column(nullable = false, length = 100)
     private String password;
 
     public Student() {
@@ -34,9 +46,17 @@ public class Student implements UserDetails {
         this.password = password;
     }
 
-    // =============================
-    // Getters and Setters
-    // =============================
+    @PrePersist
+    @PreUpdate
+    protected void normalizeFields() {
+        if (name != null) {
+            name = name.trim();
+        }
+
+        if (email != null) {
+            email = email.trim().toLowerCase(Locale.ROOT);
+        }
+    }
 
     public Long getId() {
         return id;
@@ -54,17 +74,17 @@ public class Student implements UserDetails {
         this.name = name;
     }
 
-    @Override
-    public String getUsername() {
-        return email;
-    }
-
     public String getEmail() {
         return email;
     }
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    @Override
+    public String getUsername() {
+        return email;
     }
 
     @Override
@@ -76,15 +96,10 @@ public class Student implements UserDetails {
         this.password = password;
     }
 
-    // =============================
-    // Spring Security Methods
-    // =============================
-
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return Collections.singletonList(
-                new SimpleGrantedAuthority("ROLE_STUDENT")
-        );
+                new SimpleGrantedAuthority("ROLE_STUDENT"));
     }
 
     @Override

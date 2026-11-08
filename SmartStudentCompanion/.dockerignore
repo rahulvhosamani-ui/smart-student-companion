@@ -1,0 +1,12 @@
+.git
+.github
+.vscode
+target
+*.log
+error*.txt
+error.txt
+*.zip
+*.sql.gz
+.env
+.env.*
+backups

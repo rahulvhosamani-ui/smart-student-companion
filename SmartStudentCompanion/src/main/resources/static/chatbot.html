@@ -354,7 +354,7 @@ h1 {
         transform: translateX(0);
     }
 
-    .backdrop.show {
+    .backdrop.open {
         display: block;
         position: fixed;
         inset: 0;
@@ -417,6 +417,7 @@ h1 {
     }
 }
 </style>
+<link rel="stylesheet" href="/navigation.css">
 </head>
 
 <body>
@@ -436,6 +437,7 @@ h1 {
             <li><a href="flashcards.html">📖 Flashcards</a></li>
             <li><a class="active" href="chatbot.html">🤖 AI Assistant</a></li>
         </ul>
+        <a href="/logout" class="logout" data-logout style="display:block;margin:18px 10px 0;padding:12px;text-align:center;background:#ff4d4d;color:white;border-radius:8px;text-decoration:none;font-weight:700">Logout</a>
     </aside>
 
     <div class="backdrop" id="backdrop"></div>
@@ -517,6 +519,7 @@ h1 {
     </main>
 </div>
 
+<script src="/csrf.js"></script>
 <script>
 "use strict";
 
@@ -575,29 +578,22 @@ function addMessage(role, text, time = getTime()) {
     return message;
 }
 
-function csrfHeaders() {
-    const match = document.cookie.match(/(?:^|;\s*)XSRF-TOKEN=([^;]+)/);
-    if (!match) return {};
-    try { return { "X-XSRF-TOKEN": decodeURIComponent(match[1]) }; }
-    catch (_) { return { "X-XSRF-TOKEN": match[1] }; }
-}
-
 async function fetchJSON(url, options = {}) {
     const response = await fetch(url, {
-        credentials: "same-origin",
         ...options,
         headers: {
-            ...csrfHeaders(),
             ...(options.body ? { "Content-Type": "application/json" } : {}),
             ...(options.headers || {})
         }
     });
 
+    const text = await response.text();
+    let data = null;
+    try { data = text ? JSON.parse(text) : null; } catch (_) { data = text; }
     if (!response.ok) {
-        throw new Error("Request failed (" + response.status + ")");
+        throw new Error((data && (data.error || data.message || data.detail)) || data || `Request failed (${response.status}). Please try again.`);
     }
-
-    return response.json();
+    return data;
 }
 
 function normalizeHistory(data) {
@@ -751,7 +747,7 @@ function closeSidebar() {
 
 document.getElementById("menuToggle").addEventListener("click", () => {
     sidebar.classList.toggle("open");
-    backdrop.classList.toggle("show");
+    backdrop.classList.toggle("open");
 });
 
 backdrop.addEventListener("click", closeSidebar);

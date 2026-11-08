@@ -1,0 +1,77 @@
+/* Shared responsive navigation used by every signed-in student page. */
+.menu-toggle {
+    display: none;
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    z-index: 1200;
+    background: var(--green, #52b788);
+    color: #121214;
+    border: 0;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 21px;
+    line-height: 1.2;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, .25);
+}
+
+.backdrop,
+.sidebar-backdrop {
+    display: none;
+}
+
+@media (max-width: 900px) {
+    .menu-toggle {
+        display: block;
+    }
+
+    .sidebar {
+        position: fixed !important;
+        top: 0 !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        z-index: 1100 !important;
+        width: min(270px, 84vw) !important;
+        height: 100vh;
+        height: 100dvh;
+        min-height: 0;
+        overflow-y: auto;
+        transform: translateX(-105%) !important;
+        transition: transform .25s ease;
+        padding-top: 70px;
+    }
+
+    .sidebar.open,
+    .sidebar.active {
+        left: 0 !important;
+        transform: translateX(0) !important;
+    }
+
+    .backdrop.open,
+    .backdrop.show,
+    .sidebar-backdrop.active {
+        display: block !important;
+        position: fixed !important;
+        inset: 0;
+        z-index: 1050 !important;
+        background: rgba(0, 0, 0, .6);
+    }
+
+    .main,
+    .content {
+        padding: 75px 15px 20px !important;
+    }
+
+    /* The button is fixed to the viewport, so its old inline row must not
+       take up space above the page content on the pages that had one. */
+    .topbar {
+        height: 0;
+        min-height: 0;
+        margin: 0 !important;
+        overflow: visible;
+    }
+
+    .topbar > .subtitle {
+        display: none;
+    }
+}

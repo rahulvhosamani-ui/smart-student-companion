@@ -214,7 +214,16 @@ public class AINoteController {
                 level.isBlank() ? "College" : level,
                 style.isBlank() ? "Detailed notes" : style);
 
-        String content = geminiService.askGemini(prompt);
+        String content;
+        try {
+            content = geminiService.askGemini(prompt);
+        } catch (IllegalStateException exception) {
+            boolean missingKey = exception.getMessage() != null
+                    && exception.getMessage().contains("API key is not configured");
+            throw new ResponseStatusException(
+                    missingKey ? HttpStatus.SERVICE_UNAVAILABLE : HttpStatus.BAD_GATEWAY,
+                    exception.getMessage());
+        }
 
         if (content == null
                 || content.isBlank()

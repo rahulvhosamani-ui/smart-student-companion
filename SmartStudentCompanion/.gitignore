@@ -31,4 +31,12 @@ build/
 
 ### VS Code ###
 .vscode/
-src/main/resources/application-local.properties
+error-log.txt
+app.log
+error.txt
+.env
+.env.*
+!.env.example
+*.zip
+*.sql.gz
+/backups/

@@ -1,7 +1,30 @@
 package com.example.demo;
 
-import org.springframework.data.jpa.repository.JpaRepository;
+import java.util.List;
 
-public interface NoteRepository
-        extends JpaRepository<Note, Long> {
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public interface NoteRepository extends JpaRepository<Note, Long> {
+
+    List<Note> findAllByStudent_IdOrderByCreatedAtDesc(Long studentId);
+    java.util.Optional<Note> findByIdAndStudent_Id(Long id, Long studentId);
+    boolean existsByIdAndStudent_Id(Long id, Long studentId);
+    void deleteByIdAndStudent_Id(Long id, Long studentId);
+
+    // Find notes by subject
+    List<Note> findBySubjectIgnoreCase(String subject);
+
+    // Search notes by title
+    List<Note> findByTitleContainingIgnoreCase(String title);
+
+    // Find notes by subject, ordered by most recently created
+    List<Note> findBySubjectIgnoreCaseOrderByCreatedAtDesc(
+            String subject);
+
+    // Search notes by title or content
+    List<Note> findByTitleContainingIgnoreCaseOrContentContainingIgnoreCase(
+            String title,
+            String content);
 }

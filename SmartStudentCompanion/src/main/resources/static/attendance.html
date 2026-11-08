@@ -493,6 +493,7 @@ input::placeholder {
     }
 }
 </style>
+<link rel="stylesheet" href="/navigation.css">
 </head>
 
 <body>
@@ -520,7 +521,7 @@ input::placeholder {
         </ul>
     </nav>
 
-    <a href="/logout" class="logout" data-logout="true">Logout</a>
+    <a href="/logout" class="logout" data-logout>Logout</a>
 </aside>
 
 <main class="main">
@@ -563,6 +564,7 @@ input::placeholder {
 
         <form id="attendanceForm">
             <input type="hidden" id="attendanceId">
+            <input type="hidden" id="month">
 
             <div class="form-grid">
                 <div>
@@ -646,41 +648,20 @@ input::placeholder {
 </main>
 
 
+<script src="/csrf.js"></script>
 <script>
 "use strict";
 const API_URL="/api/attendance",TARGET=75,$=id=>document.getElementById(id);let records=[],barChart=null,doughnutChart=null;
-function csrfHeaders() {
-    const match = document.cookie.match(/(?:^|;\s*)XSRF-TOKEN=([^;]+)/);
-    if (!match) return {};
-    try { return { "X-XSRF-TOKEN": decodeURIComponent(match[1]) }; }
-    catch (_) { return { "X-XSRF-TOKEN": match[1] }; }
-}
-
-
-document.querySelectorAll('[data-logout="true"]').forEach(link => {
-    link.addEventListener("click", async event => {
-        event.preventDefault();
-        try {
-            await fetch("/logout", {
-                method: "POST",
-                credentials: "same-origin",
-                headers: csrfHeaders()
-            });
-        } finally {
-            window.location.href = "/login?logout=true";
-        }
-    });
-});
-
-async function api(url=API_URL,opts={}){const r=await fetch(url,{...opts,credentials:"same-origin",headers:{"Content-Type":"application/json",...csrfHeaders(),...(opts.headers||{})}});if(!r.ok)throw new Error("API request failed: "+r.status);if(r.status===204)return null;const t=await r.text();return t?JSON.parse(t):null}
+const currentMonth=()=>new Date().toISOString().slice(0,7);
+async function api(url=API_URL,opts={}){const r=await fetch(url,{...opts,headers:{"Content-Type":"application/json",...(opts.headers||{})}});const t=await r.text();let data=null;try{data=t?JSON.parse(t):null}catch{data=t}if(!r.ok)throw new Error(data?.error||data?.message||data||`Request failed (${r.status}). Please try again.`);if(r.status===204)return null;return data}
 function msg(t,e=false){$("message").textContent=t;$("message").className="message "+(e?"error":"success")}
 function list(d){return Array.isArray(d)?d:Array.isArray(d?.data)?d.data:[]}
-function render(){const q=$("searchInput").value.toLowerCase(),f=$("filterStatus").value;const shown=records.filter(x=>(x.subject||"").toLowerCase().includes(q)&&(!f||(f==="low"?Number(x.percentage)<TARGET:Number(x.percentage)>=TARGET)));$("attendanceList").replaceChildren();shown.forEach(x=>{const card=document.createElement("article");card.className="subject-card";const h=document.createElement("h3");h.textContent=x.subject||"Subject";const p=document.createElement("p");p.textContent=Number(x.percentage).toFixed(1)+"% attendance";const bar=document.createElement("progress");bar.max=100;bar.value=Number(x.percentage)||0;const edit=document.createElement("button");edit.type="button";edit.textContent="Edit";edit.onclick=()=>{$("attendanceId").value=x.id??"";$("subject").value=x.subject||"";$("percentage").value=x.percentage??0;$("formHeading").textContent="Edit Attendance";$("saveButton").textContent="Update Attendance";$("cancelButton").hidden=false;$("editorPanel").scrollIntoView({behavior:"smooth"})};const del=document.createElement("button");del.type="button";del.textContent="Delete";del.onclick=async()=>{if(!confirm("Delete this attendance record?"))return;try{await api(API_URL+"/"+encodeURIComponent(x.id),{method:"DELETE"});await load();msg("Attendance record deleted.")}catch(e){msg(e.message,true)}};card.append(h,p,bar,edit,del);$("attendanceList").append(card)});const vals=records.map(x=>Number(x.percentage)||0),avg=vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:0;$("overallAttendance").textContent=avg.toFixed(1)+"%";$("subjectCount").textContent=records.length;$("lowCount").textContent=records.filter(x=>Number(x.percentage)<TARGET).length;$("goodCount").textContent=records.filter(x=>Number(x.percentage)>=TARGET).length;if(typeof Chart==="undefined")return;if(barChart)barChart.destroy();if(doughnutChart)doughnutChart.destroy();barChart=new Chart($("attendanceBarChart"),{type:"bar",data:{labels:records.map(x=>x.subject),datasets:[{label:"Attendance %",data:vals,backgroundColor:vals.map(v=>v<TARGET?"#ff4d4d":"#52b788")}]},options:{responsive:true,scales:{y:{min:0,max:100}}}});doughnutChart=new Chart($("attendanceDoughnutChart"),{type:"doughnut",data:{labels:["Below target","At/above target"],datasets:[{data:[records.filter(x=>Number(x.percentage)<TARGET).length,records.filter(x=>Number(x.percentage)>=TARGET).length],backgroundColor:["#ff4d4d","#52b788"]}]},options:{responsive:true}})}
+function render(){const q=$("searchInput").value.toLowerCase(),f=$("filterStatus").value;const shown=records.filter(x=>(x.subject||"").toLowerCase().includes(q)&&(!f||(f==="low"?Number(x.percentage)<TARGET:Number(x.percentage)>=TARGET)));$("attendanceList").replaceChildren();shown.forEach(x=>{const card=document.createElement("article");card.className="subject-card";const h=document.createElement("h3");h.textContent=x.subject||"Subject";const p=document.createElement("p");p.textContent=Number(x.percentage).toFixed(1)+"% attendance";const bar=document.createElement("progress");bar.max=100;bar.value=Number(x.percentage)||0;const edit=document.createElement("button");edit.type="button";edit.textContent="Edit";edit.onclick=()=>{$("attendanceId").value=x.id??"";$("subject").value=x.subject||"";$("percentage").value=x.percentage??0;$("month").value=x.month||currentMonth();$("formHeading").textContent="Edit Attendance";$("saveButton").textContent="Update Attendance";$("cancelButton").hidden=false;$("editorPanel").scrollIntoView({behavior:"smooth"})};const del=document.createElement("button");del.type="button";del.textContent="Delete";del.onclick=async()=>{if(!confirm("Delete this attendance record?"))return;try{await api(API_URL+"/"+encodeURIComponent(x.id),{method:"DELETE"});await load();msg("Attendance record deleted.")}catch(e){msg(e.message,true)}};card.append(h,p,bar,edit,del);$("attendanceList").append(card)});const vals=records.map(x=>Number(x.percentage)||0),avg=vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:0;$("overallAttendance").textContent=avg.toFixed(1)+"%";$("subjectCount").textContent=records.length;$("lowCount").textContent=records.filter(x=>Number(x.percentage)<TARGET).length;$("goodCount").textContent=records.filter(x=>Number(x.percentage)>=TARGET).length;if(typeof Chart==="undefined")return;if(barChart)barChart.destroy();if(doughnutChart)doughnutChart.destroy();barChart=new Chart($("attendanceBarChart"),{type:"bar",data:{labels:records.map(x=>x.subject),datasets:[{label:"Attendance %",data:vals,backgroundColor:vals.map(v=>v<TARGET?"#ff4d4d":"#52b788")}]},options:{responsive:true,scales:{y:{min:0,max:100}}}});doughnutChart=new Chart($("attendanceDoughnutChart"),{type:"doughnut",data:{labels:["Below target","At/above target"],datasets:[{data:[records.filter(x=>Number(x.percentage)<TARGET).length,records.filter(x=>Number(x.percentage)>=TARGET).length],backgroundColor:["#ff4d4d","#52b788"]}]},options:{responsive:true}})}
 async function load(){try{records=list(await api());render()}catch(e){msg("Could not load attendance. Check GET /api/attendance. "+e.message,true)}}
-$("attendanceForm").onsubmit=async e=>{e.preventDefault();const id=$("attendanceId").value,payload={subject:$("subject").value.trim(),percentage:Number($("percentage").value)};if(!payload.subject||payload.percentage<0||payload.percentage>100)return msg("Enter a subject and percentage from 0 to 100.",true);try{await api(id?API_URL+"/"+encodeURIComponent(id):API_URL,{method:id?"PUT":"POST",body:JSON.stringify(payload)});reset();await load();msg("Attendance saved to database.")}catch(err){msg("Save failed: "+err.message,true)}};
-function reset(){$("attendanceForm").reset();$("attendanceId").value="";$("formHeading").textContent="Add Attendance";$("saveButton").textContent="Save Attendance";$("cancelButton").hidden=true}
+$("attendanceForm").onsubmit=async e=>{e.preventDefault();const id=$("attendanceId").value,payload={subject:$("subject").value.trim(),percentage:Number($("percentage").value),month:$("month").value||currentMonth()};if(!payload.subject||payload.percentage<0||payload.percentage>100)return msg("Enter a subject and percentage from 0 to 100.",true);try{await api(id?API_URL+"/"+encodeURIComponent(id):API_URL,{method:id?"PUT":"POST",body:JSON.stringify(payload)});reset();await load();msg("Attendance saved to database.")}catch(err){msg("Save failed: "+err.message,true)}};
+function reset(){$("attendanceForm").reset();$("attendanceId").value="";$("month").value=currentMonth();$("formHeading").textContent="Add Attendance";$("saveButton").textContent="Save Attendance";$("cancelButton").hidden=true}
 $("cancelButton").onclick=reset;$("clearButton").onclick=reset;$("searchInput").oninput=render;$("filterStatus").onchange=render;
-const side=$("sidebar"),back=$("backdrop"),toggle=$("menuToggle");toggle.onclick=()=>{let o=side.classList.toggle("open");back.classList.toggle("open",o)};back.onclick=()=>{side.classList.remove("open");back.classList.remove("open")};load();
+const side=$("sidebar"),back=$("backdrop"),toggle=$("menuToggle");toggle.onclick=()=>{let o=side.classList.toggle("open");back.classList.toggle("open",o)};back.onclick=()=>{side.classList.remove("open");back.classList.remove("open")};reset();load();
 </script>
 </body>
 </html>

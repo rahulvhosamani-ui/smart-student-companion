@@ -1,47 +1,91 @@
 # Smart Student Companion
 
-Spring Boot 3.3 / Java 17 / MySQL application with static study pages and Thymeleaf login/registration pages.
+A Spring Boot 3.3 application for student assignments, attendance, GPA, notes, reminders, flashcards, and AI study tools.
 
-## Folder structure
+## Requirements
 
-- `src/main/java/com/example/demo/` — controllers, entities, repositories, services and security.
-- `src/main/resources/static/` — dashboard and study feature pages.
-- `src/main/resources/templates/` — `login.html` and `register.html`.
-- `src/main/resources/application.properties` — environment-based configuration.
+- Java 17 or newer
+- MySQL 8.x
+- A Gemini API key only if you want to use AI features
 
-## Run locally
+The Maven wrapper is included; a separate Maven installation is not required.
 
-1. Install JDK 17+ and Maven (or use `mvnw` after Maven Wrapper downloads successfully).
-2. Create a MySQL database named `student_companion_db` and a database user.
-3. Set environment variables in your terminal before starting:
-   - `DB_URL=jdbc:mysql://localhost:3306/student_companion_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true`
-   - `DB_USERNAME=<your MySQL username>`
-   - `DB_PASSWORD=<your MySQL password>`
-   - optionally `GEMINI_API_KEY=<your Gemini API key>`
-4. Run `mvn spring-boot:run` and open `http://localhost:8081/login`.
-5. Register a new student at `http://localhost:8081/register`.
+## Local setup (Windows PowerShell)
 
-The application no longer contains a hard-coded default student password. To optionally create a first account, set both `INITIAL_STUDENT_EMAIL` and `INITIAL_STUDENT_PASSWORD` environment variables before starting.
+1. Create a MySQL database and a dedicated local user. Avoid using your MySQL administrator account for the app:
 
-## Railway deployment
+   ```sql
+   CREATE DATABASE student_companion_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+   CREATE USER 'student_app'@'localhost' IDENTIFIED BY 'choose-a-local-password';
+   GRANT ALL PRIVILEGES ON student_companion_db.* TO 'student_app'@'localhost';
+   ```
 
-Attach a Railway MySQL service. In the Java service Variables, set:
+2. Set the connection settings in the terminal you will use to run the app:
+
+   ```powershell
+   $env:DB_URL = 'jdbc:mysql://localhost:3306/student_companion_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC'
+   $env:DB_USERNAME = 'student_app'
+   $env:DB_PASSWORD = 'your-local-password'
+   # Optional, only needed for AI features:
+   $env:GEMINI_API_KEY = 'your-key'
+   ```
+
+3. Start the application:
+
+   ```powershell
+   .\mvnw.cmd spring-boot:run
+   ```
+
+4. Open `http://localhost:8080/register` to create an account, then sign in at `/login`.
+
+The local profile is selected by default. It has no embedded database password. Set `DB_PASSWORD` in your environment when your MySQL user requires one. Do not put live passwords or API keys in source files, screenshots, or committed `.env` files.
+
+## Tests
+
+Run the automated controller tests with (the suite uses an isolated in-memory H2 database, so a local MySQL server is not needed):
+
+```powershell
+.\mvnw.cmd test
+```
+
+The suite covers GPA creation, duplicate semester rejection, update by database ID, owner restricted deletion, and student scoped list queries for the other academic record APIs.
+
+## Database migrations and existing data
+
+Flyway records applied SQL migrations under `src/main/resources/db/migration`. Version 1 adds student ownership columns to older installations and changes GPA uniqueness from global semester uniqueness to per student. Hibernate updates the remaining entity schema during startup.
+
+Older records without an owner are deliberately hidden from student APIs. The app cannot safely guess which account owns old shared records. Before upgrading, make a database backup. If you need to preserve legacy records, review them and assign each to a verified student ID before making them visible; do not bulk assign records without checking ownership. New records are always saved against the authenticated account, and read, update, and delete queries are scoped to that account.
+
+## Backup and restore
+
+From PowerShell, set the database name and use `mysqldump` to create a backup. MySQL prompts for the password so it is not stored in shell history:
+
+```powershell
+mysqldump --host=localhost --user=student_app --single-transaction --routines --triggers --result-file=student_companion_backup.sql student_companion_db
+```
+
+Restore into a database after confirming the target and retaining a separate copy of the backup:
+
+```powershell
+mysql --host=localhost --user=student_app student_companion_db < student_companion_backup.sql
+```
+
+Store backups outside the repository in a restricted location. Never add database dumps to Git or the project ZIP.
+
+## Production deployment (Railway)
+
+Attach a MySQL service and configure these environment variables in the application service:
 
 - `SPRING_PROFILES_ACTIVE=prod`
-- `DB_URL` to the MySQL JDBC URL using Railway's private host, database, and port
-- `DB_USERNAME` to the Railway MySQL username
-- `DB_PASSWORD` to the Railway MySQL password
-- `GEMINI_API_KEY` if AI features are used
+- `DB_URL` using the private MySQL hostname and port
+- `DB_USERNAME`
+- `DB_PASSWORD`
+- `GEMINI_API_KEY` if AI features are enabled
 
-The app uses `${PORT:8081}` for the web port. Never commit real passwords or API keys to GitHub.
+The included Dockerfile builds the application. The server uses Railway's `PORT` value, with `8080` as the local default. Configure backups for the production database before deployment and retain a tested restore path.
 
-## Security and data notes
+To create an initial student account automatically, set both `INITIAL_STUDENT_EMAIL` and `INITIAL_STUDENT_PASSWORD` as deployment secrets. Remove them after the account is created.
 
-- Login uses Spring Security form login at `/perform_login` and the `/login` Thymeleaf template.
-- CSRF protection is enabled. Browser fetch wrappers send the `XSRF-TOKEN` cookie as the `X-XSRF-TOKEN` header for API requests.
-- All `/api/**` endpoints require an authenticated session.
-- Before public use, add owner/student scoping to every academic record entity and repository; the existing data entities in this project currently store records globally rather than associating every note/assignment/attendance/GPA/reminder with an individual student.
+## Project hygiene
 
-## Build
-
-Run `mvn clean package -DskipTests`. Tests are skipped by that command. This archive was not build-verified in this environment because Maven could not be downloaded here; please run the build locally and share any first `[ERROR]` section if it fails.
+Generated build output, IDE files, Git metadata, logs, local environment files, ZIP files, and SQL backups are excluded from the packaged project. Review `.gitignore` before adding new local artifacts.

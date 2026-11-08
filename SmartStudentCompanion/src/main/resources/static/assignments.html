@@ -474,6 +474,7 @@ select option {
     }
 }
 </style>
+<link rel="stylesheet" href="/navigation.css">
 </head>
 
 <body>
@@ -501,7 +502,7 @@ select option {
         </ul>
     </nav>
 
-    <a href="/logout" class="logout" data-logout="true">Logout</a>
+    <a href="/logout" class="logout" data-logout>Logout</a>
 </aside>
 
 <main class="main">
@@ -568,7 +569,7 @@ select option {
 
                 <div>
                     <label for="dueDate">Due Date</label>
-                    <input id="dueDate" type="date">
+                    <input type="date" id="dueDate" name="dueDate" placeholder="YYYY-MM-DD">
                 </div>
 
                 <div>
@@ -645,64 +646,347 @@ select option {
 
 </main>
 
-
+<script src="/csrf.js"></script>
 <script>
 "use strict";
-const API_URL="/api/assignments";
-const $=id=>document.getElementById(id);
-let items=[];
-function csrfHeaders() {
-    const match = document.cookie.match(/(?:^|;\s*)XSRF-TOKEN=([^;]+)/);
-    if (!match) return {};
-    try { return { "X-XSRF-TOKEN": decodeURIComponent(match[1]) }; }
-    catch (_) { return { "X-XSRF-TOKEN": match[1] }; }
+
+const API_URL = "/api/assignments";
+const $ = id => document.getElementById(id);
+
+let items = [];
+
+// Normalize dates returned by the backend to YYYY-MM-DD.
+function dateOf(x) {
+    const value = x.dueDate ?? x.due_date ?? "";
+
+    if (!value) return "";
+
+    if (Array.isArray(value)) {
+        // Supports date arrays such as [2028, 10, 27].
+        const [year, month, day] = value;
+        if (!year || !month || !day) return "";
+
+        return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+    }
+
+    const str = String(value).trim();
+
+    // Handles ISO dates and timestamps without timezone shifting.
+    const match = str.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (match) return `${match[1]}-${match[2]}-${match[3]}`;
+
+    // Fallback for other valid date formats.
+    const parsed = new Date(str);
+
+    if (Number.isNaN(parsed.getTime())) return "";
+
+    return [
+        parsed.getFullYear(),
+        String(parsed.getMonth() + 1).padStart(2, "0"),
+        String(parsed.getDate()).padStart(2, "0")
+    ].join("-");
 }
 
+// Format dates for display as DD-MM-YYYY.
+function displayDate(value) {
+    const date = String(value || "");
 
-document.querySelectorAll('[data-logout="true"]').forEach(link => {
-    link.addEventListener("click", async event => {
-        event.preventDefault();
-        try {
-            await fetch("/logout", {
-                method: "POST",
-                credentials: "same-origin",
-                headers: csrfHeaders()
-            });
-        } finally {
-            window.location.href = "/login?logout=true";
+    if (!date) return "Not set";
+
+    const match = date.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+
+    if (!match) return "Not set";
+
+    return `${match[3]}-${match[2]}-${match[1]}`;
+}
+
+async function api(url = API_URL, opts = {}) {
+    const response = await fetch(url, {
+        ...opts,
+        credentials: "same-origin",
+        headers: {
+            "Content-Type": "application/json",
+            ...(opts.headers || {})
         }
     });
+
+    const text = await response.text();
+    let data = null;
+    try { data = text ? JSON.parse(text) : null; } catch (_) { data = text; }
+    if (!response.ok) {
+        throw new Error((data && (data.error || data.message || data.detail)) || data || `Request failed (${response.status}). Please try again.`);
+    }
+    if (response.status === 204) return null;
+    return data;
+}
+
+function msg(text, error = false) {
+    $("message").textContent = text;
+    $("message").className = "message " + (error ? "error" : "success");
+}
+
+function arr(data) {
+    if (Array.isArray(data)) return data;
+    if (Array.isArray(data?.data)) return data.data;
+    if (Array.isArray(data?.content)) return data.content;
+    return [];
+}
+
+function statusOf(item) {
+    if (
+        String(item.status || "").toLowerCase() === "completed" ||
+        item.completed === true
+    ) {
+        return "Completed";
+    }
+
+    const due = dateOf(item);
+    const today = [
+        new Date().getFullYear(),
+        String(new Date().getMonth() + 1).padStart(2, "0"),
+        String(new Date().getDate()).padStart(2, "0")
+    ].join("-");
+
+    if (due && due < today) return "Overdue";
+
+    return "Pending";
+}
+
+function render() {
+    const query = $("searchInput").value.toLowerCase();
+    const filterStatus = $("filterStatus").value;
+    const subjectFilter = $("filterSubject").value;
+
+    // Preserve the currently selected subject.
+    const previousSubject = subjectFilter;
+
+    const subjects = [
+        ...new Set(items.map(item => item.subject || "General"))
+    ];
+
+    $("filterSubject").replaceChildren(
+        new Option("All subjects", "")
+    );
+
+    subjects.forEach(subject => {
+        $("filterSubject").add(new Option(subject, subject));
+    });
+
+    $("filterSubject").value = subjects.includes(previousSubject)
+        ? previousSubject
+        : "";
+
+    const selectedSubject = $("filterSubject").value;
+
+    const visible = items.filter(item => {
+        const searchableText =
+            `${item.title || ""} ${item.subject || ""}`.toLowerCase();
+
+        return (
+            searchableText.includes(query) &&
+            (!filterStatus || statusOf(item) === filterStatus) &&
+            (!selectedSubject ||
+                (item.subject || "General") === selectedSubject)
+        );
+    });
+
+    $("assignmentList").replaceChildren();
+
+    visible.forEach(item => {
+        const card = document.createElement("article");
+        card.className = "assignment-item";
+
+        const heading = document.createElement("h3");
+        heading.textContent = item.title || "Untitled";
+
+        const details = document.createElement("p");
+        details.style.whiteSpace = "pre-line";
+        details.textContent =
+            `Subject: ${item.subject || "General"}\n` +
+            `Due date: ${displayDate(dateOf(item))}\n` +
+            `Priority: ${item.priority || "Medium"}\n` +
+            `Status: ${statusOf(item)}`;
+
+        const edit = document.createElement("button");
+        edit.type = "button";
+        edit.textContent = "Edit";
+
+        edit.onclick = () => {
+            $("assignmentId").value = item.id ?? "";
+            $("assignmentTitle").value = item.title || "";
+            $("subject").value = item.subject || "General";
+
+            // Date inputs require YYYY-MM-DD.
+            $("dueDate").value = dateOf(item);
+
+            $("priority").value = item.priority || "Medium";
+
+            const currentStatus = statusOf(item);
+
+            $("statusSelect").value =
+                currentStatus === "Overdue" ? "Pending" : currentStatus;
+
+            $("formHeading").textContent = "Edit Assignment";
+            $("saveButton").textContent = "Update Assignment";
+            $("cancelButton").hidden = false;
+
+            $("editorPanel").scrollIntoView({
+                behavior: "smooth",
+                block: "start"
+            });
+        };
+
+        const done = document.createElement("button");
+        done.type = "button";
+
+        done.textContent =
+            statusOf(item) === "Completed"
+                ? "Mark Pending"
+                : "Mark Complete";
+
+        done.onclick = async () => {
+            const completed = statusOf(item) !== "Completed";
+
+            try {
+                await api(
+                    API_URL + "/" + encodeURIComponent(item.id),
+                    {
+                        method: "PUT",
+                        body: JSON.stringify({
+                            ...item,
+                            status: completed ? "Completed" : "Pending",
+                            completed
+                        })
+                    }
+                );
+
+                await load();
+                msg("Assignment status updated.");
+            } catch (error) {
+                msg(error.message, true);
+            }
+        };
+
+        const del = document.createElement("button");
+        del.type = "button";
+        del.textContent = "Delete";
+
+        del.onclick = async () => {
+            if (!confirm("Delete this assignment?")) return;
+
+            try {
+                await api(
+                    API_URL + "/" + encodeURIComponent(item.id),
+                    { method: "DELETE" }
+                );
+
+                await load();
+                msg("Assignment deleted.");
+            } catch (error) {
+                msg("Delete failed: " + error.message, true);
+            }
+        };
+
+        card.append(heading, details, edit, done, del);
+        $("assignmentList").append(card);
+    });
+
+    $("totalCount").textContent = items.length;
+
+    $("completedCount").textContent =
+        items.filter(item => statusOf(item) === "Completed").length;
+
+    $("overdueCount").textContent =
+        items.filter(item => statusOf(item) === "Overdue").length;
+
+    $("pendingCount").textContent =
+        items.filter(item => statusOf(item) === "Pending").length;
+}
+
+async function load() {
+    try {
+        items = arr(await api());
+        render();
+    } catch (error) {
+        msg(
+            "Could not load assignments. Check GET /api/assignments. " +
+            error.message,
+            true
+        );
+    }
+}
+
+$("assignmentForm").addEventListener("submit", async event => {
+    event.preventDefault();
+
+    const id = $("assignmentId").value;
+
+    const payload = {
+        title: $("assignmentTitle").value.trim(),
+        subject: $("subject").value || "General",
+        dueDate: $("dueDate").value || null,
+        priority: $("priority").value || "Medium",
+        status: $("statusSelect").value || "Pending",
+        completed: $("statusSelect").value === "Completed"
+    };
+
+    if (!payload.title) {
+        msg("Please enter an assignment title.", true);
+        return;
+    }
+
+    try {
+        await api(
+            id
+                ? API_URL + "/" + encodeURIComponent(id)
+                : API_URL,
+            {
+                method: id ? "PUT" : "POST",
+                body: JSON.stringify(payload)
+            }
+        );
+
+        reset();
+        await load();
+        msg("Assignment saved to database.");
+    } catch (error) {
+        msg("Save failed: " + error.message, true);
+    }
 });
 
-async function api(url=API_URL,opts={}){const r=await fetch(url,{...opts,credentials:"same-origin",headers:{"Content-Type":"application/json",...csrfHeaders(),...(opts.headers||{})}});if(!r.ok)throw new Error("API request failed: "+r.status);if(r.status===204)return null;const t=await r.text();return t?JSON.parse(t):null}
-function msg(t,err=false){$("message").textContent=t;$("message").className="message "+(err?"error":"success")}
-function arr(d){return Array.isArray(d)?d:Array.isArray(d?.data)?d.data:Array.isArray(d?.content)?d.content:[]}
-function dateOf(x){
-    const value=x?.dueDate??x?.due_date??"";
-    if(!value)return "";
-    if(Array.isArray(value)){
-        const [y,m,d]=value;
-        if(!y||!m||!d)return "";
-        return `${y}-${String(m).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
-    }
-    const str=String(value).trim();
-    const match=str.match(/^(\d{4})-(\d{2})-(\d{2})/);
-    if(match)return `${match[1]}-${match[2]}-${match[3]}`;
-    const parsed=new Date(str);
-    if(Number.isNaN(parsed.getTime()))return "";
-    return `${parsed.getFullYear()}-${String(parsed.getMonth()+1).padStart(2,"0")}-${String(parsed.getDate()).padStart(2,"0")}`;
+function reset() {
+    $("assignmentForm").reset();
+    $("assignmentId").value = "";
+    $("formHeading").textContent = "Add Assignment";
+    $("saveButton").textContent = "Save Assignment";
+    $("cancelButton").hidden = true;
 }
-function displayDate(value){
-    const match=String(value||"").match(/^(\d{4})-(\d{2})-(\d{2})$/);
-    return match?`${match[3]}-${match[2]}-${match[1]}`:"Not set";
-}
-function statusOf(x){if((x.status||"").toLowerCase()==="completed"||x.completed===true)return"Completed";if(dateOf(x)&&dateOf(x)<new Date().toISOString().slice(0,10))return"Overdue";return"Pending"}
-function render(){const q=$("searchInput").value.toLowerCase(),fs=$("filterStatus").value,sub=$("filterSubject").value;const subjects=[...new Set(items.map(x=>x.subject||"General"))];const old=$("filterSubject").value;$("filterSubject").replaceChildren(new Option("All subjects",""));subjects.forEach(s=>$("filterSubject").add(new Option(s,s)));$("filterSubject").value=subjects.includes(old)?old:"";const visible=items.filter(x=>(String(x.title||"")+" "+String(x.subject||"")).toLowerCase().includes(q)&&(!fs||statusOf(x)===fs)&&(!$("filterSubject").value||(x.subject||"General")===$("filterSubject").value));$("assignmentList").replaceChildren();visible.forEach(x=>{const card=document.createElement("article");card.className="assignment-item";const h=document.createElement("h3");h.textContent=x.title||"Untitled";const p=document.createElement("p");p.style.whiteSpace="pre-line";p.textContent=`Subject: ${x.subject||"General"}\nDue date: ${dateOf(x)||"Not set"}\nPriority: ${x.priority||"Medium"}\nStatus: ${statusOf(x)}`;const edit=document.createElement("button");edit.type="button";edit.textContent="Edit";edit.onclick=()=>{ $("assignmentId").value=x.id??"";$("assignmentTitle").value=x.title||"";$("subject").value=x.subject||"General";$("dueDate").value=dateOf(x);$("priority").value=x.priority||"Medium";$("statusSelect").value=statusOf(x)==="Overdue"?"Pending":statusOf(x);$("formHeading").textContent="Edit Assignment";$("saveButton").textContent="Update Assignment";$("cancelButton").hidden=false;$("editorPanel").scrollIntoView({behavior:"smooth"});};const done=document.createElement("button");done.type="button";done.textContent=statusOf(x)==="Completed"?"Mark Pending":"Mark Complete";done.onclick=async()=>{try{await api(API_URL+"/"+encodeURIComponent(x.id),{method:"PUT",body:JSON.stringify({...x,status:statusOf(x)==="Completed"?"Pending":"Completed",completed:statusOf(x)!=="Completed"})});await load()}catch(e){msg(e.message,true)}};const del=document.createElement("button");del.type="button";del.textContent="Delete";del.onclick=async()=>{if(!confirm("Delete this assignment?"))return;try{await api(API_URL+"/"+encodeURIComponent(x.id),{method:"DELETE"});await load();msg("Assignment deleted.")}catch(e){msg(e.message,true)}};card.append(h,p,edit,done,del);$("assignmentList").append(card)});$("totalCount").textContent=items.length;$("completedCount").textContent=items.filter(x=>statusOf(x)==="Completed").length;$("overdueCount").textContent=items.filter(x=>statusOf(x)==="Overdue").length;$("pendingCount").textContent=items.filter(x=>statusOf(x)==="Pending").length}
-async function load(){try{items=arr(await api());render()}catch(e){msg("Could not load assignments. Check GET /api/assignments. "+e.message,true)}}
-$("assignmentForm").addEventListener("submit",async e=>{e.preventDefault();const id=$("assignmentId").value;const payload={title:$("assignmentTitle").value.trim(),subject:$("subject").value||"General",dueDate:$("dueDate").value||null,priority:$("priority").value||"Medium",status:$("statusSelect").value||"Pending",completed:$("statusSelect").value==="Completed"};if(!payload.title)return;try{await api(id?API_URL+"/"+encodeURIComponent(id):API_URL,{method:id?"PUT":"POST",body:JSON.stringify(payload)});reset();await load();msg("Assignment saved to database.")}catch(err){msg("Save failed: "+err.message,true)}});
-function reset(){$("assignmentForm").reset();$("assignmentId").value="";$("formHeading").textContent="Add Assignment";$("saveButton").textContent="Save Assignment";$("cancelButton").hidden=true}
-$("cancelButton").onclick=reset;$("clearButton").onclick=reset;$("searchInput").oninput=render;$("filterStatus").onchange=render;$("filterSubject").onchange=render;
-const side=$("sidebar"),back=$("backdrop"),toggle=$("menuToggle");toggle.onclick=()=>{const o=side.classList.toggle("open");back.classList.toggle("open",o);toggle.setAttribute("aria-expanded",String(o))};back.onclick=()=>{side.classList.remove("open");back.classList.remove("open");toggle.setAttribute("aria-expanded","false")};load();
+
+$("cancelButton").onclick = reset;
+$("clearButton").onclick = reset;
+$("searchInput").oninput = render;
+$("filterStatus").onchange = render;
+$("filterSubject").onchange = render;
+
+// Mobile sidebar controls.
+const sidebar = $("sidebar");
+const backdrop = $("backdrop");
+const toggle = $("menuToggle");
+
+toggle.onclick = () => {
+    const open = sidebar.classList.toggle("open");
+
+    backdrop.classList.toggle("open", open);
+    toggle.setAttribute("aria-expanded", String(open));
+};
+
+backdrop.onclick = () => {
+    sidebar.classList.remove("open");
+    backdrop.classList.remove("open");
+    toggle.setAttribute("aria-expanded", "false");
+};
+
+load();
 </script>
 </body>
 </html>

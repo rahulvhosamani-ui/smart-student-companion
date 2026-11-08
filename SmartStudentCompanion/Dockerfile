@@ -1,5 +1,5 @@
 # Use a combined Maven and JDK image
-FROM maven:3.9.6-eclipse-temurin-17
+FROM maven:3.9.6-eclipse-temurin-21
 
 # Set the working directory inside the container
 WORKDIR /app
@@ -11,7 +11,7 @@ COPY . .
 RUN mvn clean package -DskipTests
 
 # Expose the internal port
-EXPOSE 8081
+EXPOSE 8080
 
 # Command to run the application
 ENTRYPOINT ["java", "-jar", "target/demo-0.0.1-SNAPSHOT.jar"]
