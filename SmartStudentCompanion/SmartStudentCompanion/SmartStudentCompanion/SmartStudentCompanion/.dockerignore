@@ -1,7 +1,0 @@
-.git
-.github
-.vscode
-target
-*.log
-error*.txt
-demoR*.zip

@@ -7,28 +7,31 @@ import java.time.YearMonth;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.Authentication;
 
 @RestController
 @RequestMapping("/api/attendance")
 public class AttendanceController {
 
     private final AttendanceRepository attendanceRepository;
+    private final CurrentStudent currentStudent;
 
     public AttendanceController(
-            AttendanceRepository attendanceRepository) {
+            AttendanceRepository attendanceRepository, CurrentStudent currentStudent) {
         this.attendanceRepository = attendanceRepository;
+        this.currentStudent = currentStudent;
     }
 
     // Get all attendance records
     @GetMapping
-    public ResponseEntity<List<Attendance>> getAttendance() {
-        return ResponseEntity.ok(attendanceRepository.findAll());
+    public ResponseEntity<List<Attendance>> getAttendance(Authentication auth) {
+        return ResponseEntity.ok(attendanceRepository.findAllByStudent_IdOrderByMonthDesc(currentStudent.require(auth).getId()));
     }
 
     // Add a new attendance record
     @PostMapping
     public ResponseEntity<?> saveAttendance(
-            @RequestBody Attendance attendance) {
+            @RequestBody Attendance attendance, Authentication auth) {
 
         if (attendance != null
                 && (attendance.getMonth() == null
@@ -44,6 +47,7 @@ public class AttendanceController {
         }
 
         attendance.setId(null);
+        attendance.setStudent(currentStudent.require(auth));
         attendance.setSubject(attendance.getSubject().trim());
         attendance.setMonth(attendance.getMonth().trim());
 
@@ -56,7 +60,7 @@ public class AttendanceController {
     @PutMapping("/{id}")
     public ResponseEntity<?> updateAttendance(
             @PathVariable Long id,
-            @RequestBody Attendance updated) {
+            @RequestBody Attendance updated, Authentication auth) {
 
         if (updated != null
                 && (updated.getMonth() == null
@@ -71,7 +75,7 @@ public class AttendanceController {
                     .body(Map.of("error", error));
         }
 
-        return attendanceRepository.findById(id)
+        return attendanceRepository.findByIdAndStudent_Id(id, currentStudent.require(auth).getId())
                 .map(existing -> {
 
                     existing.setSubject(updated.getSubject().trim());
@@ -93,13 +97,14 @@ public class AttendanceController {
     // Delete an attendance record
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteAttendance(
-            @PathVariable Long id) {
+            @PathVariable Long id, Authentication auth) {
 
-        if (!attendanceRepository.existsById(id)) {
+        Long studentId = currentStudent.require(auth).getId();
+        if (!attendanceRepository.existsByIdAndStudent_Id(id, studentId)) {
             return ResponseEntity.notFound().build();
         }
 
-        attendanceRepository.deleteById(id);
+        attendanceRepository.deleteByIdAndStudent_Id(id, studentId);
 
         return ResponseEntity.noContent().build();
     }

@@ -365,6 +365,7 @@ body.menu-open {
     overflow: hidden;
 }
 </style>
+<link rel="stylesheet" href="/navigation.css">
 </head>
 
 <body>
@@ -530,13 +531,13 @@ async function fetchJSON(url) {
         headers: { "Accept": "application/json" }
     });
 
+    const text = await response.text();
+    let data = null;
+    try { data = text ? JSON.parse(text) : null; } catch (_) { data = text; }
     if (!response.ok) {
-        throw new Error(
-            url + " returned HTTP " + response.status
-        );
+        throw new Error((data && (data.error || data.message || data.detail)) || data || ("Request failed (" + response.status + "). Please try again."));
     }
-
-    return response.json();
+    return data;
 }
 
 function getArray(data) {

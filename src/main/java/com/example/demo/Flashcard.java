@@ -1,5 +1,6 @@
 package com.example.demo;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -12,7 +13,9 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 @Entity
-@Table(name = "flashcards")
+@Table(name = "flashcards", indexes = {
+    @jakarta.persistence.Index(name = "idx_flashcards_student", columnList = "student_id")
+})
 public class Flashcard {
 
     @Id
@@ -31,6 +34,14 @@ public class Flashcard {
 
     @Column(nullable = false)
     private boolean known;
+
+    @jakarta.persistence.ManyToOne(fetch = jakarta.persistence.FetchType.LAZY, optional = true)
+    @jakarta.persistence.JoinColumn(name = "student_id", nullable = true)
+    private Student student;
+
+    @JsonIgnore
+    public Student getStudent() { return student; }
+    public void setStudent(Student student) { this.student = student; }
 
     @PrePersist
     @PreUpdate

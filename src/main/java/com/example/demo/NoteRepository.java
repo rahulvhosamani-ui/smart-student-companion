@@ -8,6 +8,11 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface NoteRepository extends JpaRepository<Note, Long> {
 
+    List<Note> findAllByStudent_IdOrderByCreatedAtDesc(Long studentId);
+    java.util.Optional<Note> findByIdAndStudent_Id(Long id, Long studentId);
+    boolean existsByIdAndStudent_Id(Long id, Long studentId);
+    void deleteByIdAndStudent_Id(Long id, Long studentId);
+
     // Find notes by subject
     List<Note> findBySubjectIgnoreCase(String subject);
 

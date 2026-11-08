@@ -1,9 +1,10 @@
-const CACHE_NAME = "smart-student-v2";
+const CACHE_NAME = "smart-student-v3";
 
 const staticFiles = [
     "/",
     "/login",
     "/manifest.json",
+    "/navigation.css",
     "/icon-192.png",
     "/icon-512.png"
 ];

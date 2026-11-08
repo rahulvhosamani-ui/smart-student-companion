@@ -1,5 +1,7 @@
 package com.example.demo;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.*;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
@@ -11,6 +13,7 @@ import jakarta.validation.constraints.Size;
 @Table(
     name = "attendance",
     indexes = {
+        @Index(name = "idx_attendance_student", columnList = "student_id"),
         @Index(
             name = "idx_attendance_subject",
             columnList = "subject"
@@ -42,6 +45,14 @@ public class Attendance {
     @Size(max = 20, message = "Month cannot exceed 20 characters")
     @Column(nullable = false, length = 20)
     private String month;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = true)
+    @JoinColumn(name = "student_id", nullable = true)
+    private Student student;
+
+    @JsonIgnore
+    public Student getStudent() { return student; }
+    public void setStudent(Student student) { this.student = student; }
 
     public Attendance() {
     }

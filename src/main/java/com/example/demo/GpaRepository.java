@@ -9,6 +9,13 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface GpaRepository extends JpaRepository<Gpa, Long> {
 
+    List<Gpa> findAllByStudent_IdOrderBySemesterAsc(Long studentId);
+    java.util.Optional<Gpa> findByIdAndStudent_Id(Long id, Long studentId);
+    boolean existsByStudent_IdAndSemester(Long studentId, Integer semester);
+    boolean existsByStudent_IdAndSemesterAndIdNot(Long studentId, Integer semester, Long id);
+    boolean existsByIdAndStudent_Id(Long id, Long studentId);
+    void deleteByIdAndStudent_Id(Long id, Long studentId);
+
     // Find GPA record by semester
     Optional<Gpa> findBySemester(Integer semester);
 

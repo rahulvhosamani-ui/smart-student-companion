@@ -474,6 +474,7 @@ select option {
     }
 }
 </style>
+<link rel="stylesheet" href="/navigation.css">
 </head>
 
 <body>
@@ -709,15 +710,14 @@ async function api(url = API_URL, opts = {}) {
         }
     });
 
-    if (!response.ok) {
-        throw new Error("API request failed: " + response.status);
-    }
-
-    if (response.status === 204) return null;
-
     const text = await response.text();
-
-    return text ? JSON.parse(text) : null;
+    let data = null;
+    try { data = text ? JSON.parse(text) : null; } catch (_) { data = text; }
+    if (!response.ok) {
+        throw new Error((data && (data.error || data.message || data.detail)) || data || `Request failed (${response.status}). Please try again.`);
+    }
+    if (response.status === 204) return null;
+    return data;
 }
 
 function msg(text, error = false) {

@@ -1,5 +1,7 @@
 package com.example.demo;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.*;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import jakarta.validation.constraints.NotBlank;
@@ -12,6 +14,7 @@ import java.time.LocalDateTime;
 @Table(
     name = "reminder",
     indexes = {
+        @Index(name = "idx_reminder_student_due", columnList = "student_id, due_date"),
         @Index(
             name = "idx_reminder_due_date",
             columnList = "due_date"
@@ -44,6 +47,14 @@ public class Reminder {
 
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = true)
+    @JoinColumn(name = "student_id", nullable = true)
+    private Student student;
+
+    @JsonIgnore
+    public Student getStudent() { return student; }
+    public void setStudent(Student student) { this.student = student; }
 
     public Reminder() {
     }

@@ -1,5 +1,7 @@
 package com.example.demo;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.*;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
@@ -12,14 +14,14 @@ import jakarta.validation.constraints.NotNull;
     name = "gpa",
     indexes = {
         @Index(
-            name = "idx_gpa_semester",
-            columnList = "semester"
+            name = "idx_gpa_student_semester",
+            columnList = "student_id, semester"
         )
     },
     uniqueConstraints = {
         @UniqueConstraint(
-            name = "uk_gpa_semester",
-            columnNames = {"semester"}
+            name = "uk_gpa_student_semester",
+            columnNames = {"student_id", "semester"}
         )
     }
 )
@@ -45,6 +47,14 @@ public class Gpa {
     @DecimalMax(value = "10.0", message = "CGPA cannot exceed 10")
     @Column
     private Double cgpa;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = true)
+    @JoinColumn(name = "student_id", nullable = true)
+    private Student student;
+
+    @JsonIgnore
+    public Student getStudent() { return student; }
+    public void setStudent(Student student) { this.student = student; }
 
     public Gpa() {
     }

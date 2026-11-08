@@ -508,7 +508,7 @@ button:focus-visible, a:focus-visible {
         transform: translateX(0);
     }
 
-    .backdrop.show {
+    .backdrop.open {
         display: block;
         position: fixed;
         inset: 0;
@@ -598,6 +598,7 @@ button:focus-visible, a:focus-visible {
     }
 }
 </style>
+<link rel="stylesheet" href="/navigation.css">
 </head>
 
 <body>
@@ -752,7 +753,7 @@ button:focus-visible, a:focus-visible {
 <script>
 "use strict";
 const API_URL="/api/flashcards",$=id=>document.getElementById(id);let flashcards=[],studyIds=[],currentIndex=0,editingId=null,isFlipped=false;
-async function api(url=API_URL,opts={}){const r=await fetch(url,{...opts,headers:{"Content-Type":"application/json",...(opts.headers||{})}});if(!r.ok)throw new Error("API request failed: "+r.status);if(r.status===204)return null;const t=await r.text();return t?JSON.parse(t):null}
+async function api(url=API_URL,opts={}){const r=await fetch(url,{...opts,headers:{"Content-Type":"application/json",...(opts.headers||{})}});const t=await r.text();let data=null;try{data=t?JSON.parse(t):null}catch{data=t}if(!r.ok)throw new Error(data?.error||data?.message||data||`Request failed (${r.status}). Please try again.`);if(r.status===204)return null;return data}
 function arr(d){return Array.isArray(d)?d:Array.isArray(d?.data)?d.data:[]}
 function toast(t){$("toast").textContent=t;$("toast").hidden=false;setTimeout(()=>$("toast").hidden=true,2500)}
 async function load(){try{flashcards=arr(await api());studyIds=flashcards.map(x=>x.id);render()}catch(e){toast("Cannot load flashcards: "+e.message)}}

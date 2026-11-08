@@ -33,3 +33,10 @@ build/
 .vscode/
 error-log.txt
 app.log
+error.txt
+.env
+.env.*
+!.env.example
+*.zip
+*.sql.gz
+/backups/

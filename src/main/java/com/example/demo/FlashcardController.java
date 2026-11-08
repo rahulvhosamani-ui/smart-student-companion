@@ -13,33 +13,37 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.Authentication;
 
 @RestController
 @RequestMapping("/api/flashcards")
 public class FlashcardController {
 
     private final FlashcardRepository repository;
+    private final CurrentStudent currentStudent;
 
-    public FlashcardController(FlashcardRepository repository) {
+    public FlashcardController(FlashcardRepository repository, CurrentStudent currentStudent) {
         this.repository = repository;
+        this.currentStudent = currentStudent;
     }
 
     @GetMapping
-    public List<Flashcard> getAll() {
-        return repository.findAll();
+    public List<Flashcard> getAll(Authentication auth) {
+        return repository.findAllByStudent_IdOrderByIdDesc(currentStudent.require(auth).getId());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Flashcard> getOne(@PathVariable Long id) {
-        return repository.findById(id)
+    public ResponseEntity<Flashcard> getOne(@PathVariable Long id, Authentication auth) {
+        return repository.findByIdAndStudent_Id(id, currentStudent.require(auth).getId())
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping
     public ResponseEntity<Flashcard> create(
-            @Valid @RequestBody Flashcard flashcard) {
+            @Valid @RequestBody Flashcard flashcard, Authentication auth) {
         flashcard.setId(null);
+        flashcard.setStudent(currentStudent.require(auth));
         Flashcard saved = repository.saveAndFlush(flashcard);
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
@@ -47,8 +51,8 @@ public class FlashcardController {
     @PutMapping("/{id}")
     public ResponseEntity<Flashcard> update(
             @PathVariable Long id,
-            @Valid @RequestBody Flashcard updated) {
-        return repository.findById(id)
+            @Valid @RequestBody Flashcard updated, Authentication auth) {
+        return repository.findByIdAndStudent_Id(id, currentStudent.require(auth).getId())
                 .map(existing -> {
                     existing.setQuestion(updated.getQuestion());
                     existing.setAnswer(updated.getAnswer());
@@ -59,11 +63,12 @@ public class FlashcardController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        if (!repository.existsById(id)) {
+    public ResponseEntity<Void> delete(@PathVariable Long id, Authentication auth) {
+        Long studentId = currentStudent.require(auth).getId();
+        if (!repository.existsByIdAndStudent_Id(id, studentId)) {
             return ResponseEntity.notFound().build();
         }
-        repository.deleteById(id);
+        repository.deleteByIdAndStudent_Id(id, studentId);
         return ResponseEntity.noContent().build();
     }
 }

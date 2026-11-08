@@ -9,6 +9,11 @@ import org.springframework.stereotype.Repository;
 public interface AttendanceRepository
         extends JpaRepository<Attendance, Long> {
 
+    List<Attendance> findAllByStudent_IdOrderByMonthDesc(Long studentId);
+    java.util.Optional<Attendance> findByIdAndStudent_Id(Long id, Long studentId);
+    boolean existsByIdAndStudent_Id(Long id, Long studentId);
+    void deleteByIdAndStudent_Id(Long id, Long studentId);
+
     // Find attendance records by subject
     List<Attendance> findBySubjectIgnoreCase(String subject);
 

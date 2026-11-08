@@ -9,6 +9,11 @@ import org.springframework.stereotype.Repository;
 public interface AssignmentRepository
         extends JpaRepository<Assignment, Long> {
 
+    List<Assignment> findAllByStudent_IdOrderByDueDateAsc(Long studentId);
+    java.util.Optional<Assignment> findByIdAndStudent_Id(Long id, Long studentId);
+    boolean existsByIdAndStudent_Id(Long id, Long studentId);
+    void deleteByIdAndStudent_Id(Long id, Long studentId);
+
     // Find assignments by subject
     List<Assignment> findBySubjectIgnoreCase(String subject);
 

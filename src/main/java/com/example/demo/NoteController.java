@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.Authentication;
 
 @RestController
 @RequestMapping("/api/notes")
@@ -19,25 +20,27 @@ public class NoteController {
             LoggerFactory.getLogger(NoteController.class);
 
     private final NoteRepository noteRepository;
+    private final CurrentStudent currentStudent;
 
-    public NoteController(NoteRepository noteRepository) {
+    public NoteController(NoteRepository noteRepository, CurrentStudent currentStudent) {
         this.noteRepository = noteRepository;
+        this.currentStudent = currentStudent;
     }
 
     // Retrieve all notes
     @GetMapping
-    public ResponseEntity<List<Note>> getAllNotes() {
+    public ResponseEntity<List<Note>> getAllNotes(Authentication auth) {
         log.info("Loading notes");
 
-        return ResponseEntity.ok(noteRepository.findAll());
+        return ResponseEntity.ok(noteRepository.findAllByStudent_IdOrderByCreatedAtDesc(currentStudent.require(auth).getId()));
     }
 
     // Retrieve one note
     @GetMapping("/{id}")
     public ResponseEntity<Note> getNoteById(
-            @PathVariable Long id) {
+            @PathVariable Long id, Authentication auth) {
 
-        return noteRepository.findById(id)
+        return noteRepository.findByIdAndStudent_Id(id, currentStudent.require(auth).getId())
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
@@ -45,7 +48,7 @@ public class NoteController {
     // Create a new note
     @PostMapping
     public ResponseEntity<?> saveNote(
-            @Valid @RequestBody Note note) {
+            @Valid @RequestBody Note note, Authentication auth) {
 
         log.info("Save note request received");
 
@@ -59,6 +62,7 @@ public class NoteController {
         try {
             // Ensure the database generates a new ID.
             note.setId(null);
+            note.setStudent(currentStudent.require(auth));
             normalizeNote(note);
 
             Note saved = noteRepository.saveAndFlush(note);
@@ -84,7 +88,7 @@ public class NoteController {
     @PutMapping("/{id}")
     public ResponseEntity<?> updateNote(
             @PathVariable Long id,
-            @Valid @RequestBody Note updatedNote) {
+            @Valid @RequestBody Note updatedNote, Authentication auth) {
 
         String error = validateNote(updatedNote);
 
@@ -93,7 +97,7 @@ public class NoteController {
                     .body(Map.of("error", error));
         }
 
-        return noteRepository.findById(id)
+        return noteRepository.findByIdAndStudent_Id(id, currentStudent.require(auth).getId())
                 .map(note -> {
                     normalizeNote(updatedNote);
 
@@ -130,13 +134,14 @@ public class NoteController {
     // Delete a note
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteNote(
-            @PathVariable Long id) {
+            @PathVariable Long id, Authentication auth) {
 
-        if (!noteRepository.existsById(id)) {
+        Long studentId = currentStudent.require(auth).getId();
+        if (!noteRepository.existsByIdAndStudent_Id(id, studentId)) {
             return ResponseEntity.notFound().build();
         }
 
-        noteRepository.deleteById(id);
+        noteRepository.deleteByIdAndStudent_Id(id, studentId);
 
         log.info("Note deleted successfully, id={}", id);
 

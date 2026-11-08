@@ -7,23 +7,26 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
+import org.springframework.security.core.Authentication;
 
 @RestController
 @RequestMapping("/api/assignments")
 public class AssignmentController {
 
     private final AssignmentRepository assignmentRepository;
+    private final CurrentStudent currentStudent;
 
     public AssignmentController(
-            AssignmentRepository assignmentRepository) {
+            AssignmentRepository assignmentRepository, CurrentStudent currentStudent) {
         this.assignmentRepository = assignmentRepository;
+        this.currentStudent = currentStudent;
     }
 
     // Get all assignments
     @GetMapping
-    public ResponseEntity<List<Assignment>> getAssignments() {
+    public ResponseEntity<List<Assignment>> getAssignments(Authentication auth) {
         List<Assignment> assignments =
-                assignmentRepository.findAll();
+                assignmentRepository.findAllByStudent_IdOrderByDueDateAsc(currentStudent.require(auth).getId());
 
         return ResponseEntity.ok(assignments);
     }
@@ -31,7 +34,7 @@ public class AssignmentController {
     // Create a new assignment
     @PostMapping
     public ResponseEntity<?> saveAssignment(
-            @Valid @RequestBody Assignment assignment) {
+            @Valid @RequestBody Assignment assignment, Authentication auth) {
 
         if (assignment.getTitle() == null
                 || assignment.getTitle().isBlank()) {
@@ -56,6 +59,7 @@ public class AssignmentController {
         }
 
         assignment.setId(null);
+        assignment.setStudent(currentStudent.require(auth));
         assignment.setTitle(assignment.getTitle().trim());
         assignment.setSubject(normalizeSubject(assignment.getSubject()));
         assignment.setPriority(normalizePriority(assignment.getPriority()));
@@ -77,7 +81,7 @@ public class AssignmentController {
     @PutMapping("/{id}")
     public ResponseEntity<?> updateAssignment(
             @PathVariable Long id,
-            @Valid @RequestBody Assignment updated) {
+            @Valid @RequestBody Assignment updated, Authentication auth) {
 
         if (updated.getTitle() == null
                 || updated.getTitle().isBlank()) {
@@ -101,7 +105,7 @@ public class AssignmentController {
                     .body("Priority must be Low, Medium, or High.");
         }
 
-        return assignmentRepository.findById(id)
+        return assignmentRepository.findByIdAndStudent_Id(id, currentStudent.require(auth).getId())
                 .map(existing -> {
 
                     existing.setTitle(updated.getTitle().trim());
@@ -132,9 +136,9 @@ public class AssignmentController {
     @PatchMapping("/{id}/status")
     public ResponseEntity<?> updateStatus(
             @PathVariable Long id,
-            @RequestBody Assignment updated) {
+            @RequestBody Assignment updated, Authentication auth) {
 
-        return assignmentRepository.findById(id)
+        return assignmentRepository.findByIdAndStudent_Id(id, currentStudent.require(auth).getId())
                 .map(existing -> {
 
                     boolean done = updated.isCompleted()
@@ -157,13 +161,14 @@ public class AssignmentController {
     // Delete an assignment
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteAssignment(
-            @PathVariable Long id) {
+            @PathVariable Long id, Authentication auth) {
 
-        if (!assignmentRepository.existsById(id)) {
+        Long studentId = currentStudent.require(auth).getId();
+        if (!assignmentRepository.existsByIdAndStudent_Id(id, studentId)) {
             return ResponseEntity.notFound().build();
         }
 
-        assignmentRepository.deleteById(id);
+        assignmentRepository.deleteByIdAndStudent_Id(id, studentId);
 
         return ResponseEntity.noContent().build();
     }

@@ -10,6 +10,11 @@ import org.springframework.stereotype.Repository;
 public interface ReminderRepository
         extends JpaRepository<Reminder, Long> {
 
+    List<Reminder> findAllByStudent_IdOrderByDueDateAsc(Long studentId);
+    java.util.Optional<Reminder> findByIdAndStudent_Id(Long id, Long studentId);
+    boolean existsByIdAndStudent_Id(Long id, Long studentId);
+    void deleteByIdAndStudent_Id(Long id, Long studentId);
+
     // Find reminders by title
     List<Reminder> findByTitleContainingIgnoreCase(String title);
 

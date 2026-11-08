@@ -4,4 +4,9 @@
 target
 *.log
 error*.txt
-demoR*.zip
+error.txt
+*.zip
+*.sql.gz
+.env
+.env.*
+backups
